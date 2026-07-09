@@ -377,7 +377,7 @@ patch_jitsi_meet_index() {
     skip == 1 { next }
     /<script src="interface_config\.js"><\/script>/ { next }
     /<script src="logging_config\.js"><\/script>/ { next }
-    tolower($0) ~ /<\/head>/ && inserted == 0 {
+    /<script[^>]+src="libs\/app\.bundle[^"]*"/ && inserted == 0 {
       print "    <script>"
       print "    // BEGIN FEDORA NATIVE JITSI CONFIG SHIM"
       print "    window.interfaceConfig = window.interfaceConfig || {"
@@ -420,7 +420,7 @@ patch_jitsi_meet_index() {
     }
   ' "${index}" > "${tmp}" || {
     rm -f "${tmp}"
-    die "Could not patch ${index}: closing </head> not found."
+    die "Could not patch ${index}: app bundle script tag not found."
   }
   cat "${tmp}" > "${index}"
   rm -f "${tmp}"

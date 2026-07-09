@@ -72,7 +72,7 @@ web_index_references_interface_config() {
   awk '
     /var interfaceConfig = window\.interfaceConfig/ { interface_line = NR }
     /<script src="logging_config\.js"><\/script>/ { logging_line = NR }
-    /app\.bundle.*\.js/ && app_line == 0 { app_line = NR }
+    /<script[^>]+src="libs\/app\.bundle[^"]*"/ && app_line == 0 { app_line = NR }
     END {
       exit !(interface_line > 0 && logging_line > 0 && app_line > 0 && interface_line < app_line && logging_line < app_line)
     }
