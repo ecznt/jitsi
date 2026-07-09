@@ -363,6 +363,21 @@ configure_grafana_admin() {
   fi
 }
 
+patch_jitsi_meet_index() {
+  local index="${JITSI_MEET_ROOT}/index.html"
+  [[ -f "${index}" ]] || die "Jitsi Meet index.html not found: ${index}"
+
+  backup_file "${index}"
+
+  if ! grep -q 'interface_config.js' "${index}"; then
+    sed -i '/app\.bundle.*\.js/ i\    <script src="interface_config.js"></script>' "${index}"
+  fi
+
+  if ! grep -q 'logging_config.js' "${index}"; then
+    sed -i '/app\.bundle.*\.js/ i\    <script src="logging_config.js"></script>' "${index}"
+  fi
+}
+
 configure_selinux_firewall() {
   log "Configuring SELinux and firewalld without disabling SELinux"
   if command -v getenforce >/dev/null 2>&1 && [[ "$(getenforce)" != "Disabled" ]]; then
@@ -449,6 +464,7 @@ configure_tls
 configure_prosody
 write_wrappers
 render_configs
+patch_jitsi_meet_index
 configure_grafana_admin
 configure_selinux_firewall
 install_systemd_units

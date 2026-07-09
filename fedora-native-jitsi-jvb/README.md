@@ -151,6 +151,11 @@ done
 The installer provisions all three files under `/etc/jitsi/meet/` and aliases
 them explicitly in Nginx.
 
+If the browser console shows `Uncaught ReferenceError: interfaceConfig is not
+defined`, rerun the installer after updating. The installer patches
+`index.html` so `interface_config.js` and `logging_config.js` load before the
+Jitsi Meet app bundle.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:

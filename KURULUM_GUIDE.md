@@ -339,6 +339,16 @@ altinda uretir ve Nginx uzerinden dogrudan servis eder.
 Browser tarafinda hala siyah ekran varsa Developer Tools Console sekmesini acin
 ve ilk kirmizi JavaScript hatasini kontrol edin.
 
+Su hata gorulurse `index.html` interface config dosyasini yuklemiyor demektir:
+
+```text
+Uncaught ReferenceError: interfaceConfig is not defined
+```
+
+Installer `index.html` icine `interface_config.js` ve `logging_config.js`
+scriptlerini app bundle'dan once ekler. Guncelleme sonrasi installer'i tekrar
+calistirin ve Nginx'i restart edin.
+
 ## 10. Faz 2 Notlari
 
 Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:
