@@ -63,6 +63,9 @@ repository and rerun `scripts/10-install.sh`. The installer supports the current
 Jitsi `Packages.xz`, legacy `Packages.gz`, and plain `Packages` index formats.
 It also consumes the full package index before selecting a package, avoiding
 `curl: (23) Failure writing output to destination` from an early-closed pipe.
+During artifact download the installer logs each resolved package URL and checks
+it with a HEAD request before downloading, so a repository-side 404 reports the
+exact package and URL.
 
 ## TLS choice
 

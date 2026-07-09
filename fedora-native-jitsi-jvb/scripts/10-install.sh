@@ -120,14 +120,33 @@ package_filename() {
   package_index \
     | awk -v pkg="${pkg}" '
       $1 == "Package:" { hit = ($2 == pkg) }
-      hit && $1 == "Version:" && version == "" { version = $2 }
-      hit && $1 == "Filename:" && filename == "" { filename = $2 }
+      hit && $1 == "Version:" { version = $2 }
+      hit && $1 == "Filename:" { filename = $2 }
       END {
         if (filename != "") {
           print version "|" filename
         }
       }
     '
+}
+
+package_url() {
+  local filename="$1"
+  local repo="${JITSI_REPO_URL%/}"
+  case "${filename}" in
+    http://*|https://*)
+      echo "${filename}"
+      ;;
+    ./*)
+      echo "${repo}/${filename#./}"
+      ;;
+    /*)
+      echo "https://download.jitsi.org${filename}"
+      ;;
+    *)
+      echo "${repo}/${filename}"
+      ;;
+  esac
 }
 
 extract_deb() {
@@ -149,13 +168,16 @@ install_jitsi_artifacts() {
   : > "${summary}"
 
   for pkg in ${JITSI_PACKAGES}; do
-    local meta version filename deb
+    local meta version filename url deb
     meta="$(package_filename "${pkg}")"
     [[ -n "${meta}" ]] || die "Could not resolve package ${pkg} from ${JITSI_REPO_URL}"
     version="${meta%%|*}"
     filename="${meta#*|}"
+    url="$(package_url "${filename}")"
     deb="${DOWNLOAD_DIR}/$(basename "${filename}")"
-    curl -fL "${JITSI_REPO_URL%/}/${filename}" -o "${deb}"
+    log "Resolved ${pkg} ${version} -> ${url}"
+    curl -fsIL "${url}" >/dev/null || die "Resolved URL is not reachable for ${pkg}: ${url}"
+    curl -fL "${url}" -o "${deb}"
     extract_deb "${deb}" "${DOWNLOAD_DIR}/extract-${pkg}"
     printf '%s %s %s\n' "${pkg}" "${version}" "${filename}" | tee -a "${summary}"
   done
