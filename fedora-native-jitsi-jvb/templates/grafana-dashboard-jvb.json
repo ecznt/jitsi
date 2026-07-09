@@ -1,0 +1,41 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    { "type": "stat", "title": "conferences", "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_conferences|jvb_conferences|conferences\"})", "refId": "A" } ] },
+    { "type": "stat", "title": "endpoints", "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_endpoints|jvb_endpoints|endpoints\"})", "refId": "A" } ] },
+    { "type": "stat", "title": "endpoints_sending_video", "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_endpoints_sending_video|jvb_endpoints_sending_video|endpoints_sending_video\"})", "refId": "A" } ] },
+    { "type": "stat", "title": "largest_conference", "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 }, "targets": [ { "expr": "max({__name__=~\"jitsi_videobridge_largest_conference|jvb_largest_conference|largest_conference\"})", "refId": "A" } ] },
+    { "type": "stat", "title": "stress_level", "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 }, "targets": [ { "expr": "max({__name__=~\"jitsi_videobridge_stress_level|jvb_stress_level|stress_level\"})", "refId": "A" } ] },
+    { "type": "stat", "title": "total_ice_failed", "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_total_ice_failed|jvb_total_ice_failed|total_ice_failed\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "bit_rate_upload", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 4 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_bit_rate_upload|jvb_bit_rate_upload|bit_rate_upload\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "bit_rate_download", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 4 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_bit_rate_download|jvb_bit_rate_download|bit_rate_download\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "rtt_aggregate", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 4 }, "targets": [ { "expr": "avg({__name__=~\"jitsi_videobridge_rtt_aggregate|jvb_rtt_aggregate|rtt_aggregate\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "packet_rate_upload", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_packet_rate_upload|jvb_packet_rate_upload|packet_rate_upload\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "packet_rate_download", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_packet_rate_download|jvb_packet_rate_download|packet_rate_download\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "total_failed_conferences", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_total_failed_conferences|jvb_total_failed_conferences|total_failed_conferences\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "JVM heap used", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 18 }, "targets": [ { "expr": "sum({__name__=~\"jvm_memory_used_bytes|jitsi_videobridge_jvm_memory_used_bytes\", area=~\"heap|.*\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "JVM thread count", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 18 }, "targets": [ { "expr": "sum({__name__=~\"jvm_threads_current|jvm_threads_live|jitsi_videobridge_jvm_threads_current\"})", "refId": "A" } ] },
+    { "type": "timeseries", "title": "GC pause/log metrics", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 18 }, "targets": [ { "expr": "sum(rate({__name__=~\"jvm_gc_pause_seconds_count|jvm_gc_collection_seconds_count|jitsi_videobridge_jvm_gc_pause_seconds_count\"}[5m]))", "refId": "A" } ] }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [ "jitsi", "jvb", "first-phase" ],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "JVB First Phase",
+  "uid": "jvb-first-phase",
+  "version": 1,
+  "weekStart": ""
+}
+

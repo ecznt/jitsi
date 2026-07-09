@@ -1,0 +1,23 @@
+[Unit]
+Description=Jitsi Videobridge
+After=network-online.target prosody.service
+Wants=network-online.target
+Requires=prosody.service
+
+[Service]
+Type=simple
+User=jvb
+Group=jitsi
+EnvironmentFile=/etc/jitsi/videobridge/jvb.env
+ExecStart=/usr/local/sbin/jitsi-native-jvb
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65000
+LimitNPROC=65000
+TasksMax=65000
+RuntimeDirectory=jitsi-videobridge
+StateDirectory=jitsi-videobridge
+LogsDirectory=jitsi
+
+[Install]
+WantedBy=multi-user.target

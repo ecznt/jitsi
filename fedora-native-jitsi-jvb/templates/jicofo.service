@@ -1,0 +1,23 @@
+[Unit]
+Description=Jicofo conference focus
+After=network-online.target prosody.service
+Wants=network-online.target
+Requires=prosody.service
+
+[Service]
+Type=simple
+User=jicofo
+Group=jitsi
+EnvironmentFile=/etc/jitsi/jicofo/jicofo.env
+ExecStart=/usr/local/sbin/jitsi-native-jicofo
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65000
+LimitNPROC=65000
+TasksMax=65000
+RuntimeDirectory=jicofo
+StateDirectory=jicofo
+LogsDirectory=jitsi
+
+[Install]
+WantedBy=multi-user.target
