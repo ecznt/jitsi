@@ -75,6 +75,9 @@ ensure_users() {
   getent group jitsi >/dev/null || groupadd --system jitsi
   id jicofo >/dev/null 2>&1 || useradd --system --home-dir /var/lib/jicofo --shell /sbin/nologin --gid jitsi jicofo
   id jvb >/dev/null 2>&1 || useradd --system --home-dir /var/lib/jitsi-videobridge --shell /sbin/nologin --gid jitsi jvb
+  if id prosody >/dev/null 2>&1; then
+    usermod -a -G jitsi prosody
+  fi
   install -d -m 0775 -o root -g jitsi /var/log/jitsi
   install -d -m 0750 -o jicofo -g jitsi /var/lib/jicofo
   install -d -m 0750 -o jvb -g jitsi /var/lib/jitsi-videobridge
@@ -93,7 +96,7 @@ ensure_secrets() {
   JVB_AUTH_PASSWORD="${JVB_AUTH_PASSWORD:-$(random_secret)}"
   export JICOFO_AUTH_PASSWORD JVB_AUTH_PASSWORD
 
-  install -d -m 0750 /etc/jitsi
+  install -d -m 0755 /etc/jitsi
   cat > /etc/jitsi/native.env <<EOF
 JITSI_DOMAIN=${JITSI_DOMAIN}
 PUBLIC_IP=${PUBLIC_IP}
@@ -101,6 +104,7 @@ PRIVATE_IP=${PRIVATE_IP}
 JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD}
 JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD}
 EOF
+  chown root:jitsi /etc/jitsi/native.env
   chmod 0640 /etc/jitsi/native.env
 }
 
@@ -198,7 +202,7 @@ locate_jars() {
 }
 
 configure_tls() {
-  install -d -m 0750 "${TLS_DIR}"
+  install -d -m 0750 -o root -g jitsi "${TLS_DIR}"
   if [[ "${TLS_MODE}" == "selfsigned" ]]; then
     log "Generating self-signed TLS certificate"
     openssl req -x509 -nodes -newkey rsa:4096 -days 365 \
@@ -214,11 +218,13 @@ configure_tls() {
     firewall-cmd --reload
     systemctl stop nginx 2>/dev/null || true
     certbot certonly --standalone -n --agree-tos -m "${LE_EMAIL}" -d "${JITSI_DOMAIN}"
-    ln -sf "/etc/letsencrypt/live/${JITSI_DOMAIN}/fullchain.pem" "${TLS_DIR}/${JITSI_DOMAIN}.crt"
-    ln -sf "/etc/letsencrypt/live/${JITSI_DOMAIN}/privkey.pem" "${TLS_DIR}/${JITSI_DOMAIN}.key"
+    cp "/etc/letsencrypt/live/${JITSI_DOMAIN}/fullchain.pem" "${TLS_DIR}/${JITSI_DOMAIN}.crt"
+    cp "/etc/letsencrypt/live/${JITSI_DOMAIN}/privkey.pem" "${TLS_DIR}/${JITSI_DOMAIN}.key"
   else
     die "TLS_MODE must be selfsigned or letsencrypt"
   fi
+  chown root:jitsi "${TLS_DIR}/${JITSI_DOMAIN}.crt" "${TLS_DIR}/${JITSI_DOMAIN}.key"
+  chmod 0644 "${TLS_DIR}/${JITSI_DOMAIN}.crt"
   chmod 0640 "${TLS_DIR}/${JITSI_DOMAIN}.key"
 }
 

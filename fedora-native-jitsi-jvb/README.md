@@ -88,6 +88,25 @@ After installation:
 - Two browsers should be able to join the same room at
   `https://<JITSI_DOMAIN>/<room>` and establish audio/video.
 
+## Troubleshooting
+
+If Jicofo or JVB repeatedly restarts with messages like:
+
+```text
+/usr/local/sbin/jitsi-native-jicofo: line 3: /etc/jitsi/jicofo/jicofo.env: Permission denied
+/usr/local/sbin/jitsi-native-jvb: line 3: /etc/jitsi/videobridge/jvb.env: Permission denied
+```
+
+update the repository and rerun the installer. The installer keeps `/etc/jitsi`
+traversable for service users while keeping secret env/config files group
+readable only by the `jitsi` service group. To stop the restart loop before
+rerunning:
+
+```bash
+sudo systemctl stop jicofo jitsi-videobridge
+sudo bash scripts/10-install.sh ./config.env
+```
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:
