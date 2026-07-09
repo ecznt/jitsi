@@ -104,10 +104,20 @@ EOF
   chmod 0640 /etc/jitsi/native.env
 }
 
+package_index() {
+  local repo="${JITSI_REPO_URL%/}"
+  if curl -fsSL "${repo}/Packages.xz" 2>/dev/null | xz -dc 2>/dev/null; then
+    return
+  fi
+  if curl -fsSL "${repo}/Packages.gz" 2>/dev/null | gzip -dc 2>/dev/null; then
+    return
+  fi
+  curl -fsSL "${repo}/Packages"
+}
+
 package_filename() {
   local pkg="$1"
-  curl -fsSL "${JITSI_REPO_URL%/}/Packages.gz" \
-    | gzip -dc \
+  package_index \
     | awk -v pkg="${pkg}" '
       $1 == "Package:" { hit = ($2 == pkg) }
       hit && $1 == "Version:" { version = $2 }

@@ -58,6 +58,10 @@ sudo bash scripts/90-verify.sh ./config.env
 The discovery step does not change the system. Read it before running the
 installer, especially the active service and open port sections.
 
+If artifact download fails with a Jitsi repository index error, update this
+repository and rerun `scripts/10-install.sh`. The installer supports the current
+Jitsi `Packages.xz`, legacy `Packages.gz`, and plain `Packages` index formats.
+
 ## TLS choice
 
 Set `TLS_MODE=letsencrypt` only when the host has a real DNS name pointing at
@@ -98,4 +102,3 @@ journalctl -u jitsi-videobridge -u jicofo -u prosody --since -15m
 - JVB `stress_level` tracking under load
 - Java 21 G1GC/ZGC comparison
 - multi-JVB topology
-
