@@ -61,6 +61,8 @@ installer, especially the active service and open port sections.
 If artifact download fails with a Jitsi repository index error, update this
 repository and rerun `scripts/10-install.sh`. The installer supports the current
 Jitsi `Packages.xz`, legacy `Packages.gz`, and plain `Packages` index formats.
+It also consumes the full package index before selecting a package, avoiding
+`curl: (23) Failure writing output to destination` from an early-closed pipe.
 
 ## TLS choice
 

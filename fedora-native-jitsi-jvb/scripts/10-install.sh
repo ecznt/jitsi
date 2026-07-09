@@ -120,8 +120,13 @@ package_filename() {
   package_index \
     | awk -v pkg="${pkg}" '
       $1 == "Package:" { hit = ($2 == pkg) }
-      hit && $1 == "Version:" { version = $2 }
-      hit && $1 == "Filename:" { print version "|" $2; exit }
+      hit && $1 == "Version:" && version == "" { version = $2 }
+      hit && $1 == "Filename:" && filename == "" { filename = $2 }
+      END {
+        if (filename != "") {
+          print version "|" filename
+        }
+      }
     '
 }
 
