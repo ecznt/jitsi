@@ -54,6 +54,13 @@ web_smoke() {
   curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/" | grep -qi 'jitsi'
 }
 
+web_asset_smoke() {
+  for asset in config.js interface_config.js logging_config.js; do
+    body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/${asset}")" || return 1
+    grep -q '<!doctype html\|<html' <<< "${body}" && return 1
+  done
+}
+
 metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
@@ -70,6 +77,7 @@ check "Grafana service" service_active grafana-server
 check "Jicofo process uses Java 21" process_uses_java21 'jicofo.*\.jar'
 check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|jvb.*\.jar'
 check "Jitsi Meet web opens" web_smoke
+check "Jitsi Meet web config assets" web_asset_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
 check "Prometheus JVB target UP" prom_target_up
 check "Grafana dashboard provisioned" grafana_has_dashboard

@@ -332,8 +332,14 @@ render_configs() {
   render_template "${ROOT_DIR}/templates/jicofo.conf.tpl" /etc/jitsi/jicofo/jicofo.conf
   render_template "${ROOT_DIR}/templates/jvb.conf.tpl" /etc/jitsi/videobridge/jvb.conf
   render_template "${ROOT_DIR}/templates/jitsi-meet-config.js.tpl" "/etc/jitsi/meet/${JITSI_DOMAIN}-config.js"
+  render_template "${ROOT_DIR}/templates/interface_config.js.tpl" "/etc/jitsi/meet/${JITSI_DOMAIN}-interface_config.js"
+  render_template "${ROOT_DIR}/templates/logging_config.js.tpl" "/etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js"
   backup_file "${JITSI_MEET_ROOT}/config.js"
   cp "/etc/jitsi/meet/${JITSI_DOMAIN}-config.js" "${JITSI_MEET_ROOT}/config.js"
+  backup_file "${JITSI_MEET_ROOT}/interface_config.js"
+  cp "/etc/jitsi/meet/${JITSI_DOMAIN}-interface_config.js" "${JITSI_MEET_ROOT}/interface_config.js"
+  backup_file "${JITSI_MEET_ROOT}/logging_config.js"
+  cp "/etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js" "${JITSI_MEET_ROOT}/logging_config.js"
   render_template "${ROOT_DIR}/templates/nginx-jitsi.conf.tpl" "/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
   render_template "${ROOT_DIR}/templates/prometheus-jitsi.yml.tpl" /etc/prometheus/prometheus.yml
   backup_file /etc/grafana/provisioning/datasources/prometheus.yml
@@ -423,6 +429,8 @@ write_report() {
     echo "/etc/jitsi/jicofo/jicofo.conf"
     echo "/etc/jitsi/videobridge/jvb.conf"
     echo "/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
+    echo "/etc/jitsi/meet/${JITSI_DOMAIN}-interface_config.js"
+    echo "/etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js"
     echo "/etc/prometheus/prometheus.yml"
     echo "/var/lib/grafana/dashboards/jvb-first-phase.json"
   } > "${REPORT}"

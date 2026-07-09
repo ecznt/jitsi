@@ -323,6 +323,22 @@ Firewall:
 firewall-cmd --list-all
 ```
 
+Siyah ekran / web asset kontrolu:
+
+```bash
+for f in config.js interface_config.js logging_config.js; do
+  echo "== $f =="
+  curl -k --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/$f | head
+done
+```
+
+Bu dosyalardan herhangi biri HTML (`<!doctype html>` veya `<html>`) donduruyorsa Nginx/Jitsi Meet web config yanlistir. Installer `config.js`,
+`interface_config.js` ve `logging_config.js` dosyalarini `/etc/jitsi/meet/`
+altinda uretir ve Nginx uzerinden dogrudan servis eder.
+
+Browser tarafinda hala siyah ekran varsa Developer Tools Console sekmesini acin
+ve ilk kirmizi JavaScript hatasini kontrol edin.
+
 ## 10. Faz 2 Notlari
 
 Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:
@@ -332,4 +348,3 @@ Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:
 - JVB `stress_level` takibi
 - Java 21 uzerinde G1GC/ZGC karsilastirmasi
 - multi-JVB mimarisi
-

@@ -42,6 +42,8 @@ Fill this after running the installer and verifier on the Fedora host.
 - `/etc/jitsi/jicofo/jicofo.conf`
 - `/etc/jitsi/videobridge/jvb.conf`
 - `/etc/jitsi/meet/<domain>-config.js`
+- `/etc/jitsi/meet/<domain>-interface_config.js`
+- `/etc/jitsi/meet/<domain>-logging_config.js`
 - `/etc/nginx/conf.d/<domain>.conf`
 - `/etc/prometheus/prometheus.yml`
 - `/etc/grafana/provisioning/datasources/prometheus.yml`
@@ -104,4 +106,3 @@ Fill this after running the installer and verifier on the Fedora host.
 - JVB `stress_level` tracking under controlled load
 - Java 21 G1GC/ZGC comparison
 - multi-JVB architecture
-

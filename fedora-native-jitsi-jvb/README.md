@@ -139,6 +139,18 @@ resolve, set `JITSI_DOMAIN` to a real DNS name or add the test name to client
 `hosts` files. The verifier uses a local `--resolve` check for Nginx, but real
 browsers still need DNS or hosts resolution.
 
+If the browser shows a black page, check that Jitsi Meet JavaScript config
+assets are served as JavaScript and not as fallback HTML:
+
+```bash
+for f in config.js interface_config.js logging_config.js; do
+  curl -k --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/$f | head
+done
+```
+
+The installer provisions all three files under `/etc/jitsi/meet/` and aliases
+them explicitly in Nginx.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:
