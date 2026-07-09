@@ -133,6 +133,8 @@ package_filename() {
 package_url() {
   local filename="$1"
   local repo="${JITSI_REPO_URL%/}"
+  local origin
+  origin="$(printf '%s' "${repo}" | sed -E 's#^(https?://[^/]+).*#\1#')"
   case "${filename}" in
     http://*|https://*)
       echo "${filename}"
@@ -141,10 +143,14 @@ package_url() {
       echo "${repo}/${filename#./}"
       ;;
     /*)
-      echo "https://download.jitsi.org${filename}"
+      echo "${origin}${filename}"
       ;;
     *)
-      echo "${repo}/${filename}"
+      if [[ "${filename}" == */* ]]; then
+        echo "${origin}/${filename}"
+      else
+        echo "${repo}/${filename}"
+      fi
       ;;
   esac
 }
