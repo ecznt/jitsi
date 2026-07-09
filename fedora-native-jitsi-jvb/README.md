@@ -156,6 +156,11 @@ defined`, rerun the installer after updating. The installer patches
 `index.html` so `interface_config.js` and `logging_config.js` load before the
 Jitsi Meet app bundle.
 
+If the console shows `Uncaught SyntaxError: expected expression, got '<'`, the
+script tag was inserted inside a JavaScript block. Update and rerun the
+installer; it removes previous injected config script tags and reinserts them
+only before `</head>`.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:

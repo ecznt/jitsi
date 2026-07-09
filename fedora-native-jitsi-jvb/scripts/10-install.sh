@@ -365,17 +365,32 @@ configure_grafana_admin() {
 
 patch_jitsi_meet_index() {
   local index="${JITSI_MEET_ROOT}/index.html"
+  local tmp
   [[ -f "${index}" ]] || die "Jitsi Meet index.html not found: ${index}"
 
   backup_file "${index}"
 
-  if ! grep -q 'interface_config.js' "${index}"; then
-    sed -i '/app\.bundle.*\.js/ i\    <script src="interface_config.js"></script>' "${index}"
-  fi
-
-  if ! grep -q 'logging_config.js' "${index}"; then
-    sed -i '/app\.bundle.*\.js/ i\    <script src="logging_config.js"></script>' "${index}"
-  fi
+  tmp="$(mktemp)"
+  awk '
+    /<script src="interface_config\.js"><\/script>/ { next }
+    /<script src="logging_config\.js"><\/script>/ { next }
+    tolower($0) ~ /<\/head>/ && inserted == 0 {
+      print "    <script src=\"interface_config.js\"></script>"
+      print "    <script src=\"logging_config.js\"></script>"
+      inserted = 1
+    }
+    { print }
+    END {
+      if (inserted == 0) {
+        exit 42
+      }
+    }
+  ' "${index}" > "${tmp}" || {
+    rm -f "${tmp}"
+    die "Could not patch ${index}: closing </head> not found."
+  }
+  cat "${tmp}" > "${index}"
+  rm -f "${tmp}"
 }
 
 configure_selinux_firewall() {

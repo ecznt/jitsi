@@ -349,6 +349,16 @@ Installer `index.html` icine `interface_config.js` ve `logging_config.js`
 scriptlerini app bundle'dan once ekler. Guncelleme sonrasi installer'i tekrar
 calistirin ve Nginx'i restart edin.
 
+Su hata gorulurse script tag yanlislikla JavaScript blogunun icine girmis
+demektir:
+
+```text
+Uncaught SyntaxError: expected expression, got '<'
+```
+
+Guncel installer once eski hatali script tag satirlarini temizler, sonra
+scriptleri yalnizca `</head>` oncesine ekler.
+
 ## 10. Faz 2 Notlari
 
 Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:
