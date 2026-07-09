@@ -122,6 +122,18 @@ installer. Jicofo and JVB artifacts are not launched with `java -jar`; the
 installer now discovers the package launcher scripts and falls back to an
 explicit classpath/main-class launch only when no launcher exists.
 
+If JVB fails with:
+
+```text
+Initial heap size set to a larger value than the maximum heap size
+```
+
+update and rerun the installer. The extracted Debian launcher may add its own
+lower `-Xmx` value; the Fedora wrapper starts JVB directly with an explicit
+classpath and controlled Java 21 heap flags to avoid that conflict. As a quick
+temporary workaround on a small VMware lab VM, set `JVB_HEAP=2g` in `config.env`
+and rerun the installer.
+
 If `Jitsi Meet web opens` fails only because `meet.example.org` does not
 resolve, set `JITSI_DOMAIN` to a real DNS name or add the test name to client
 `hosts` files. The verifier uses a local `--resolve` check for Nginx, but real

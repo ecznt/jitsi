@@ -287,7 +287,9 @@ EOF
 JAVA_HOME=${jhome}
 JVB_HOME=${JVB_HOME}
 JVB_LAUNCHER=${JVB_LAUNCHER}
-JVB_JAVA_OPTS='-Xms${JVB_HEAP} -Xmx${JVB_HEAP} -XX:+UseG1GC -Xlog:gc*:file=/var/log/jitsi/jvb-gc.log:time,uptime,level,tags:filecount=10,filesize=50M'
+JVB_MAIN_CLASS=org.jitsi.videobridge.MainKt
+JVB_HEAP_OPTS='-Xms${JVB_HEAP} -Xmx${JVB_HEAP}'
+JVB_RUNTIME_OPTS='-XX:+UseG1GC -Xlog:gc*:file=/var/log/jitsi/jvb-gc.log:time,uptime,level,tags:filecount=10,filesize=50M'
 EOF
 
   cat > /usr/local/sbin/jitsi-native-jicofo <<'EOF'
@@ -314,18 +316,8 @@ EOF
 set -euo pipefail
 source /etc/jitsi/videobridge/jvb.env
 export JAVA_HOME
-export JAVA_TOOL_OPTIONS="${JVB_JAVA_OPTS} -Dconfig.file=/etc/jitsi/videobridge/jvb.conf ${JAVA_TOOL_OPTIONS:-}"
-if [[ -n "${JVB_LAUNCHER:-}" && -x "${JVB_LAUNCHER}" ]]; then
-  exec "${JVB_LAUNCHER}"
-fi
 JVB_CP="$(find "${JVB_HOME}" -type f -name '*.jar' | paste -sd ':' -)"
-set +e
-for main_class in org.jitsi.videobridge.MainKt org.jitsi.videobridge.Main; do
-  "${JAVA_HOME}/bin/java" -cp "${JVB_CP}" "${main_class}" "$@"
-  status=$?
-  [[ ${status} -eq 0 ]] && exit 0
-done
-exit 1
+exec "${JAVA_HOME}/bin/java" ${JVB_HEAP_OPTS} ${JVB_RUNTIME_OPTS} -Dconfig.file=/etc/jitsi/videobridge/jvb.conf -cp "${JVB_CP}" "${JVB_MAIN_CLASS}" "$@"
 EOF
 
   chmod 0755 /usr/local/sbin/jitsi-native-jicofo /usr/local/sbin/jitsi-native-jvb
