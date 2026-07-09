@@ -348,6 +348,9 @@ Uncaught ReferenceError: interfaceConfig is not defined
 Installer `index.html` icine `interface_config.js` ve `logging_config.js`
 scriptlerini app bundle'dan once ekler. Guncelleme sonrasi installer'i tekrar
 calistirin ve Nginx'i restart edin.
+Ek olarak `config.js` icine de `var interfaceConfig` yazilir; boylece Jitsi
+Meet bundle hangi index sirasiyla yuklenirse yuklensin global interface config
+mevcut olur.
 
 Su hata gorulurse script tag yanlislikla JavaScript blogunun icine girmis
 demektir:

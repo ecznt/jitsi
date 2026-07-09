@@ -59,6 +59,8 @@ web_asset_smoke() {
     body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/${asset}")" || return 1
     grep -q '<!doctype html\|<html' <<< "${body}" && return 1
   done
+  curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/config.js" \
+    | grep -q 'var interfaceConfig'
 }
 
 web_index_references_interface_config() {

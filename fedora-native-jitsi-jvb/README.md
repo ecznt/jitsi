@@ -155,6 +155,9 @@ If the browser console shows `Uncaught ReferenceError: interfaceConfig is not
 defined`, rerun the installer after updating. The installer patches
 `index.html` so `interface_config.js` and `logging_config.js` load before the
 Jitsi Meet app bundle.
+It also embeds `interfaceConfig` and `loggingConfig` directly in `config.js`,
+which is the most reliable compatibility path for extracted Jitsi Meet web
+artifacts with differing `index.html` script orders.
 
 If the console shows `Uncaught SyntaxError: expected expression, got '<'`, the
 script tag was inserted inside a JavaScript block. Update and rerun the
