@@ -107,6 +107,26 @@ sudo systemctl stop jicofo jitsi-videobridge
 sudo bash scripts/10-install.sh ./config.env
 ```
 
+If Java fails before the service starts with GC log permission errors, rerun the
+installer. It resets `/var/log/jitsi` ownership to `root:jitsi`, makes the
+directory group-writable, and makes existing log files writable by the service
+group:
+
+```text
+Error opening log file '/var/log/jitsi/jvb-gc.log': Permission denied
+Invalid -Xlog option ...
+```
+
+If a service exits with `no main manifest attribute`, update and rerun the
+installer. Jicofo and JVB artifacts are not launched with `java -jar`; the
+installer now discovers the package launcher scripts and falls back to an
+explicit classpath/main-class launch only when no launcher exists.
+
+If `Jitsi Meet web opens` fails only because `meet.example.org` does not
+resolve, set `JITSI_DOMAIN` to a real DNS name or add the test name to client
+`hosts` files. The verifier uses a local `--resolve` check for Nginx, but real
+browsers still need DNS or hosts resolution.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:

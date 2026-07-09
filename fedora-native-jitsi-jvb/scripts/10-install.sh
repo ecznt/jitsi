@@ -83,6 +83,15 @@ ensure_users() {
   install -d -m 0750 -o jvb -g jitsi /var/lib/jitsi-videobridge
 }
 
+fix_log_permissions() {
+  log "Fixing Jitsi log permissions"
+  install -d -m 2775 -o root -g jitsi /var/log/jitsi
+  chown -R root:jitsi /var/log/jitsi
+  find /var/log/jitsi -type d -exec chmod 2775 {} \;
+  find /var/log/jitsi -type f -exec chmod g+rw {} \;
+  restorecon -R /var/log/jitsi 2>/dev/null || true
+}
+
 detect_addresses() {
   PRIVATE_IP="${PRIVATE_IP:-$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="src") {print $(i+1); exit}}')}"
   PUBLIC_IP="${PUBLIC_IP:-$(curl -fsS --max-time 5 https://ifconfig.me 2>/dev/null || true)}"
@@ -193,12 +202,36 @@ install_jitsi_artifacts() {
   done
 }
 
-locate_jars() {
-  JICOFO_JAR="$(find "${NATIVE_ROOT}" -type f -name 'jicofo*.jar' | head -n1)"
-  JVB_JAR="$(find "${NATIVE_ROOT}" -type f \( -name 'jitsi-videobridge*.jar' -o -name 'jvb*.jar' \) | head -n1)"
-  [[ -n "${JICOFO_JAR}" ]] || die "Could not find jicofo jar under ${NATIVE_ROOT}"
-  [[ -n "${JVB_JAR}" ]] || die "Could not find JVB jar under ${NATIVE_ROOT}"
-  export JICOFO_JAR JVB_JAR
+locate_launchers() {
+  JICOFO_HOME="$(find "${NATIVE_ROOT}" -type d -path '*/usr/share/jicofo' | head -n1)"
+  JVB_HOME="$(find "${NATIVE_ROOT}" -type d -path '*/usr/share/jitsi-videobridge' | head -n1)"
+  JICOFO_LAUNCHER="$(find "${NATIVE_ROOT}" \( -type f -o -type l \) \( -path '*/usr/share/jicofo/jicofo.sh' -o -path '*/usr/bin/jicofo' \) | head -n1)"
+  JVB_LAUNCHER="$(find "${NATIVE_ROOT}" \( -type f -o -type l \) \( -path '*/usr/share/jitsi-videobridge/jvb.sh' -o -path '*/usr/share/jitsi-videobridge/jitsi-videobridge.sh' -o -path '*/usr/bin/jitsi-videobridge' \) | head -n1)"
+  if [[ -n "${JICOFO_LAUNCHER}" && -L "${JICOFO_LAUNCHER}" ]]; then
+    local target
+    target="$(readlink "${JICOFO_LAUNCHER}")"
+    if [[ "${target}" == /* ]]; then
+      JICOFO_LAUNCHER="${NATIVE_ROOT}${target}"
+    else
+      JICOFO_LAUNCHER="$(readlink -f "${JICOFO_LAUNCHER}")"
+    fi
+  fi
+  if [[ -n "${JVB_LAUNCHER}" && -L "${JVB_LAUNCHER}" ]]; then
+    local target
+    target="$(readlink "${JVB_LAUNCHER}")"
+    if [[ "${target}" == /* ]]; then
+      JVB_LAUNCHER="${NATIVE_ROOT}${target}"
+    else
+      JVB_LAUNCHER="$(readlink -f "${JVB_LAUNCHER}")"
+    fi
+  fi
+  [[ -n "${JICOFO_HOME}" ]] || die "Could not find jicofo home under ${NATIVE_ROOT}"
+  [[ -n "${JVB_HOME}" ]] || die "Could not find JVB home under ${NATIVE_ROOT}"
+  [[ -n "${JICOFO_LAUNCHER}" ]] || log "No Jicofo launcher found; wrapper will use classpath fallback."
+  [[ -n "${JVB_LAUNCHER}" ]] || log "No JVB launcher found; wrapper will use classpath fallback."
+  [[ -z "${JICOFO_LAUNCHER}" ]] || chmod 0755 "${JICOFO_LAUNCHER}"
+  [[ -z "${JVB_LAUNCHER}" ]] || chmod 0755 "${JVB_LAUNCHER}"
+  export JICOFO_HOME JVB_HOME JICOFO_LAUNCHER JVB_LAUNCHER
 }
 
 configure_tls() {
@@ -245,13 +278,15 @@ write_wrappers() {
 
   cat > /etc/jitsi/jicofo/jicofo.env <<EOF
 JAVA_HOME=${jhome}
-JICOFO_JAR=${JICOFO_JAR}
+JICOFO_HOME=${JICOFO_HOME}
+JICOFO_LAUNCHER=${JICOFO_LAUNCHER}
 JICOFO_JAVA_OPTS='-Xms${JICOFO_HEAP} -Xmx${JICOFO_HEAP} -XX:+UseG1GC -Xlog:gc*:file=/var/log/jitsi/jicofo-gc.log:time,uptime,level,tags:filecount=10,filesize=50M'
 EOF
 
   cat > /etc/jitsi/videobridge/jvb.env <<EOF
 JAVA_HOME=${jhome}
-JVB_JAR=${JVB_JAR}
+JVB_HOME=${JVB_HOME}
+JVB_LAUNCHER=${JVB_LAUNCHER}
 JVB_JAVA_OPTS='-Xms${JVB_HEAP} -Xmx${JVB_HEAP} -XX:+UseG1GC -Xlog:gc*:file=/var/log/jitsi/jvb-gc.log:time,uptime,level,tags:filecount=10,filesize=50M'
 EOF
 
@@ -259,14 +294,38 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 source /etc/jitsi/jicofo/jicofo.env
-exec "${JAVA_HOME}/bin/java" ${JICOFO_JAVA_OPTS} -Dconfig.file=/etc/jitsi/jicofo/jicofo.conf -jar "${JICOFO_JAR}"
+export JAVA_HOME
+export JAVA_TOOL_OPTIONS="${JICOFO_JAVA_OPTS} -Dconfig.file=/etc/jitsi/jicofo/jicofo.conf ${JAVA_TOOL_OPTIONS:-}"
+if [[ -n "${JICOFO_LAUNCHER:-}" && -x "${JICOFO_LAUNCHER}" ]]; then
+  exec "${JICOFO_LAUNCHER}"
+fi
+JICOFO_CP="$(find "${JICOFO_HOME}" -type f -name '*.jar' | paste -sd ':' -)"
+set +e
+for main_class in org.jitsi.jicofo.MainKt org.jitsi.jicofo.Main; do
+  "${JAVA_HOME}/bin/java" -cp "${JICOFO_CP}" "${main_class}" "$@"
+  status=$?
+  [[ ${status} -eq 0 ]] && exit 0
+done
+exit 1
 EOF
 
   cat > /usr/local/sbin/jitsi-native-jvb <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 source /etc/jitsi/videobridge/jvb.env
-exec "${JAVA_HOME}/bin/java" ${JVB_JAVA_OPTS} -Dconfig.file=/etc/jitsi/videobridge/jvb.conf -jar "${JVB_JAR}"
+export JAVA_HOME
+export JAVA_TOOL_OPTIONS="${JVB_JAVA_OPTS} -Dconfig.file=/etc/jitsi/videobridge/jvb.conf ${JAVA_TOOL_OPTIONS:-}"
+if [[ -n "${JVB_LAUNCHER:-}" && -x "${JVB_LAUNCHER}" ]]; then
+  exec "${JVB_LAUNCHER}"
+fi
+JVB_CP="$(find "${JVB_HOME}" -type f -name '*.jar' | paste -sd ':' -)"
+set +e
+for main_class in org.jitsi.videobridge.MainKt org.jitsi.videobridge.Main; do
+  "${JAVA_HOME}/bin/java" -cp "${JVB_CP}" "${main_class}" "$@"
+  status=$?
+  [[ ${status} -eq 0 ]] && exit 0
+done
+exit 1
 EOF
 
   chmod 0755 /usr/local/sbin/jitsi-native-jicofo /usr/local/sbin/jitsi-native-jvb
@@ -358,9 +417,11 @@ write_report() {
     echo "Artifacts:"
     cat "${DOWNLOAD_DIR}/artifact-versions.txt" 2>/dev/null || true
     echo
-    echo "JAR paths:"
-    echo "JICOFO_JAR=${JICOFO_JAR}"
-    echo "JVB_JAR=${JVB_JAR}"
+    echo "Launcher paths:"
+    echo "JICOFO_HOME=${JICOFO_HOME}"
+    echo "JICOFO_LAUNCHER=${JICOFO_LAUNCHER}"
+    echo "JVB_HOME=${JVB_HOME}"
+    echo "JVB_LAUNCHER=${JVB_LAUNCHER}"
     echo
     echo "Ports opened:"
     firewall-cmd --list-all 2>/dev/null || true
@@ -379,10 +440,11 @@ guard_existing_services
 install_packages
 select_java21
 ensure_users
+fix_log_permissions
 detect_addresses
 ensure_secrets
 install_jitsi_artifacts
-locate_jars
+locate_launchers
 configure_tls
 configure_prosody
 write_wrappers
@@ -390,6 +452,7 @@ render_configs
 configure_grafana_admin
 configure_selinux_firewall
 install_systemd_units
+fix_log_permissions
 start_services
 write_report
 

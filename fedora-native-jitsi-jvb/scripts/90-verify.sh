@@ -42,9 +42,8 @@ process_uses_java21() {
 }
 
 prom_target_up() {
-  curl -fsS 'http://127.0.0.1:9090/api/v1/targets?state=active' \
-    | grep -q '"job":"jvb"' \
-    && curl -fsS 'http://127.0.0.1:9090/api/v1/targets?state=active' | grep -q '"health":"up"'
+  curl -fsG 'http://127.0.0.1:9090/api/v1/query' --data-urlencode 'query=up{job="jvb"}' \
+    | grep -Eq '"value":\[[^]]+,"1"\]'
 }
 
 grafana_has_dashboard() {
@@ -52,7 +51,7 @@ grafana_has_dashboard() {
 }
 
 web_smoke() {
-  curl -kfsS "https://${JITSI_DOMAIN}/" | grep -qi 'jitsi'
+  curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/" | grep -qi 'jitsi'
 }
 
 metrics_smoke() {
