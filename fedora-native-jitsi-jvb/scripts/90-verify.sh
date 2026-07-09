@@ -65,10 +65,12 @@ web_asset_smoke() {
 
 web_index_references_interface_config() {
   body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/")" || return 1
+  grep -q 'BEGIN FEDORA NATIVE JITSI CONFIG SHIM' <<< "${body}" || return 1
+  grep -q 'var interfaceConfig = window.interfaceConfig' <<< "${body}" || return 1
   grep -q '<script src="interface_config.js"></script>' <<< "${body}" || return 1
   grep -q '<script src="logging_config.js"></script>' <<< "${body}" || return 1
   awk '
-    /<script src="interface_config\.js"><\/script>/ { interface_line = NR }
+    /var interfaceConfig = window\.interfaceConfig/ { interface_line = NR }
     /<script src="logging_config\.js"><\/script>/ { logging_line = NR }
     /app\.bundle.*\.js/ && app_line == 0 { app_line = NR }
     END {

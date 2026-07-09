@@ -158,6 +158,9 @@ Jitsi Meet app bundle.
 It also embeds `interfaceConfig` and `loggingConfig` directly in `config.js`,
 which is the most reliable compatibility path for extracted Jitsi Meet web
 artifacts with differing `index.html` script orders.
+The installer also inserts an inline `window.interfaceConfig` shim before
+`</head>` and removes older injected shim blocks before reapplying it, so reruns
+are idempotent.
 
 If the console shows `Uncaught SyntaxError: expected expression, got '<'`, the
 script tag was inserted inside a JavaScript block. Update and rerun the

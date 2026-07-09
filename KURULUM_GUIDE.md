@@ -351,6 +351,9 @@ calistirin ve Nginx'i restart edin.
 Ek olarak `config.js` icine de `var interfaceConfig` yazilir; boylece Jitsi
 Meet bundle hangi index sirasiyla yuklenirse yuklensin global interface config
 mevcut olur.
+Guncel installer ayrica `index.html` icine `window.interfaceConfig` ve
+`var interfaceConfig` tanimlayan inline bir shim ekler. Bu, bundle calismadan
+once global degiskenin kesin olarak hazir olmasini saglar.
 
 Su hata gorulurse script tag yanlislikla JavaScript blogunun icine girmis
 demektir:

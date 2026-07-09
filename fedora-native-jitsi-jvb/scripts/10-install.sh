@@ -372,9 +372,42 @@ patch_jitsi_meet_index() {
 
   tmp="$(mktemp)"
   awk '
+    /BEGIN FEDORA NATIVE JITSI CONFIG SHIM/ { skip = 1; next }
+    /END FEDORA NATIVE JITSI CONFIG SHIM/ { skip = 0; next }
+    skip == 1 { next }
     /<script src="interface_config\.js"><\/script>/ { next }
     /<script src="logging_config\.js"><\/script>/ { next }
     tolower($0) ~ /<\/head>/ && inserted == 0 {
+      print "    <script>"
+      print "    // BEGIN FEDORA NATIVE JITSI CONFIG SHIM"
+      print "    window.interfaceConfig = window.interfaceConfig || {"
+      print "        APP_NAME: '\''Jitsi Meet'\'',"
+      print "        NATIVE_APP_NAME: '\''Jitsi Meet'\'',"
+      print "        PROVIDER_NAME: '\''Jitsi'\'',"
+      print "        DEFAULT_BACKGROUND: '\''#040404'\'',"
+      print "        SHOW_BRAND_WATERMARK: false,"
+      print "        SHOW_JITSI_WATERMARK: false,"
+      print "        SHOW_POWERED_BY: false,"
+      print "        SHOW_WATERMARK_FOR_GUESTS: false,"
+      print "        MOBILE_APP_PROMO: false,"
+      print "        DISABLE_JOIN_LEAVE_NOTIFICATIONS: false,"
+      print "        DISABLE_PRESENCE_STATUS: false,"
+      print "        DISABLE_TRANSCRIPTION_SUBTITLES: true,"
+      print "        TOOLBAR_BUTTONS: ["
+      print "            '\''microphone'\'', '\''camera'\'', '\''desktop'\'', '\''fullscreen'\'', '\''fodeviceselection'\'',"
+      print "            '\''hangup'\'', '\''profile'\'', '\''chat'\'', '\''settings'\'', '\''raisehand'\'',"
+      print "            '\''videoquality'\'', '\''filmstrip'\'', '\''invite'\'', '\''stats'\'', '\''shortcuts'\'',"
+      print "            '\''tileview'\'', '\''security'\''"
+      print "        ],"
+      print "        SETTINGS_SECTIONS: [ '\''devices'\'', '\''language'\'', '\''moderator'\'', '\''profile'\'' ],"
+      print "        VIDEO_LAYOUT_FIT: '\''both'\'',"
+      print "        TILE_VIEW_MAX_COLUMNS: 5"
+      print "    };"
+      print "    var interfaceConfig = window.interfaceConfig;"
+      print "    window.loggingConfig = window.loggingConfig || { defaultLogLevel: '\''warn'\'' };"
+      print "    var loggingConfig = window.loggingConfig;"
+      print "    // END FEDORA NATIVE JITSI CONFIG SHIM"
+      print "    </script>"
       print "    <script src=\"interface_config.js\"></script>"
       print "    <script src=\"logging_config.js\"></script>"
       inserted = 1
