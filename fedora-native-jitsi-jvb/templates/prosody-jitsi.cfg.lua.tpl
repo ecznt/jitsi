@@ -2,27 +2,6 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
-modules_enabled = {
-    "roster";
-    "saslauth";
-    "tls";
-    "dialback";
-    "disco";
-    "carbons";
-    "pep";
-    "private";
-    "blocklist";
-    "vcard4";
-    "vcard_legacy";
-    "version";
-    "uptime";
-    "time";
-    "ping";
-    "register";
-    "admin_adhoc";
-    "http";
-}
-
 http_ports = { 5280 }
 http_interfaces = { "127.0.0.1" }
 https_ports = { }

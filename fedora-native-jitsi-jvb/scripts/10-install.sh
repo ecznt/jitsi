@@ -266,6 +266,7 @@ configure_prosody() {
   local check_output
   install -d -m 0755 /etc/prosody/conf.d
   export PROSODY_PLUGIN_PATH="${NATIVE_ROOT}/usr/share/jitsi-meet/prosody-plugins"
+  patch_prosody_main_modules
   render_template "${ROOT_DIR}/templates/prosody-jitsi.cfg.lua.tpl" "/etc/prosody/conf.d/${JITSI_DOMAIN}.cfg.lua"
   disable_conflicting_prosody_confs "/etc/prosody/conf.d/${JITSI_DOMAIN}.cfg.lua"
   if ! check_output="$(timeout 30 prosodyctl check config 2>&1)"; then
@@ -278,6 +279,39 @@ configure_prosody() {
   fi
   prosodyctl register focus "auth.${JITSI_DOMAIN}" "${JICOFO_AUTH_PASSWORD}" || true
   prosodyctl register jvb "auth.${JITSI_DOMAIN}" "${JVB_AUTH_PASSWORD}" || true
+}
+
+patch_prosody_main_modules() {
+  local cfg="/etc/prosody/prosody.cfg.lua"
+  local tmp
+  [[ -f "${cfg}" ]] || die "Missing Prosody main config: ${cfg}"
+  grep -Eq '^[[:space:]]*modules_enabled[[:space:]]*=' "${cfg}" || die "Could not find modules_enabled in ${cfg}"
+
+  backup_file "${cfg}"
+  tmp="$(mktemp)"
+  awk '
+    BEGIN {
+      in_modules = 0
+      patched_http = 0
+      patched_bosh = 0
+      patched_websocket = 0
+    }
+    /^[[:space:]]*modules_enabled[[:space:]]*=[[:space:]]*\{/ && in_modules == 0 {
+      in_modules = 1
+    }
+    in_modules == 1 && /"http"/ { patched_http = 1 }
+    in_modules == 1 && /"bosh"/ { patched_bosh = 1 }
+    in_modules == 1 && /"websocket"/ { patched_websocket = 1 }
+    in_modules == 1 && /^[[:space:]]*\}/ {
+      if (patched_http == 0) print "    \"http\";";
+      if (patched_bosh == 0) print "    \"bosh\";";
+      if (patched_websocket == 0) print "    \"websocket\";";
+      in_modules = 0
+    }
+    { print }
+  ' "${cfg}" > "${tmp}"
+  cat "${tmp}" > "${cfg}"
+  rm -f "${tmp}"
 }
 
 disable_conflicting_prosody_confs() {

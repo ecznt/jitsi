@@ -102,6 +102,25 @@ prosody_config_check() {
   ! grep -Eiq 'failed to load|No such file or directory|Check for typos' <<< "${check_output}"
 }
 
+prosody_main_http_modules() {
+  local cfg="/etc/prosody/prosody.cfg.lua"
+  [[ -f "${cfg}" ]] || return 1
+  awk '
+    /^[[:space:]]*modules_enabled[[:space:]]*=[[:space:]]*\{/ {
+      in_modules = 1
+    }
+    in_modules == 1 && /"http"/ { has_http = 1 }
+    in_modules == 1 && /"bosh"/ { has_bosh = 1 }
+    in_modules == 1 && /"websocket"/ { has_websocket = 1 }
+    in_modules == 1 && /^[[:space:]]*\}/ {
+      in_modules = 0
+    }
+    END {
+      exit !(has_http == 1 && has_bosh == 1 && has_websocket == 1)
+    }
+  ' "${cfg}"
+}
+
 xmpp_bosh_smoke() {
   local response body
   response="$(curl -k -sS -i --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
@@ -208,6 +227,7 @@ check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
 check "Prosody config check" prosody_config_check
+check "Prosody main config loads HTTP modules" prosody_main_http_modules
 check "Prosody HTTP listener on 5280" prosody_http_listener
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "Direct Prosody BOSH POST" prosody_direct_bosh_post_smoke
