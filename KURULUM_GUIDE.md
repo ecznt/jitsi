@@ -198,6 +198,11 @@ Bu script servisleri durdurur, failed durumlarini temizler, Jicofo register
 olana kadar bekler, JVB'nin MUC'a girdigini dogrular ve son olarak verify
 calistirir.
 
+Sirali stop sirasinda eski unit dosyalari Java proseslerinin SIGTERM cikisini
+`status=143` ve `Failed with result 'exit-code'` olarak yazabilir. Bu normal
+stop davranisidir, Jitsi runtime hatasi degildir. Guncel unit template'leri
+`143` cikisini basarili stop kabul eder.
+
 Beklenen kontroller:
 
 - `java -version` Java 21 gostermeli.

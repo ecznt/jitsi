@@ -79,6 +79,11 @@ If the browser still shows `You have been disconnected`, run:
 sudo bash scripts/40-repair-disconnect.sh ./config.env
 ```
 
+During an ordered stop, older unit files can show Java exits as
+`status=143` / `Failed with result 'exit-code'`. That is a normal SIGTERM stop,
+not a Jitsi runtime failure. Current unit templates mark `143` as a successful
+service stop.
+
 If artifact download fails with a Jitsi repository index error, update this
 repository and rerun `scripts/10-install.sh`. The installer supports the current
 Jitsi `Packages.xz`, legacy `Packages.gz`, and plain `Packages` index formats.

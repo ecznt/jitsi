@@ -11,6 +11,7 @@ Group=jitsi
 EnvironmentFile=/etc/jitsi/videobridge/jvb.env
 ExecStartPre=/usr/bin/sleep 20
 ExecStart=/usr/local/sbin/jitsi-native-jvb
+SuccessExitStatus=143
 Restart=on-failure
 RestartSec=5
 LimitNOFILE=65000

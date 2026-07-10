@@ -10,6 +10,7 @@ User=jicofo
 Group=jitsi
 EnvironmentFile=/etc/jitsi/jicofo/jicofo.env
 ExecStart=/usr/local/sbin/jitsi-native-jicofo
+SuccessExitStatus=143
 Restart=on-failure
 RestartSec=5
 LimitNOFILE=65000
