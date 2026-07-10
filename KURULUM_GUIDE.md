@@ -49,6 +49,7 @@ fedora-native-jitsi-jvb/
     10-install.sh
     20-stop-services.sh
     30-start-services.sh
+    40-repair-disconnect.sh
     90-verify.sh
   templates/
 ```
@@ -185,6 +186,17 @@ prosody -> jicofo -> jitsi-videobridge -> nginx -> prometheus -> grafana-server
 
 Bu labda `prosody`, `jicofo` ve `jitsi-videobridge` servislerini tek komutta
 toplu restart etmeyin. Once Prosody, sonra Jicofo, en son JVB kalkmali.
+
+Browser tarafinda hala `You have been disconnected` gorulurse temiz onarim
+akisini calistirin:
+
+```bash
+sudo bash scripts/40-repair-disconnect.sh ./config.env
+```
+
+Bu script servisleri durdurur, failed durumlarini temizler, Jicofo register
+olana kadar bekler, JVB'nin MUC'a girdigini dogrular ve son olarak verify
+calistirir.
 
 Beklenen kontroller:
 

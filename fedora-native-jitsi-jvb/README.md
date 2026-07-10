@@ -41,6 +41,7 @@ Primary upstream references checked while preparing this package:
 - `scripts/10-install.sh` - install and configure the first-phase stack.
 - `scripts/20-stop-services.sh` - stop the Jitsi stack in a safe order.
 - `scripts/30-start-services.sh` - start the Jitsi stack in the required order.
+- `scripts/40-repair-disconnect.sh` - clean ordered restart plus verification for browser disconnects.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
 
@@ -71,6 +72,12 @@ sudo bash scripts/90-verify.sh ./config.env
 Do not restart `prosody`, `jicofo`, and `jitsi-videobridge` together in one
 command during this lab. Jicofo must come up before JVB so it owns the internal
 brewery room.
+
+If the browser still shows `You have been disconnected`, run:
+
+```bash
+sudo bash scripts/40-repair-disconnect.sh ./config.env
+```
 
 If artifact download fails with a Jitsi repository index error, update this
 repository and rerun `scripts/10-install.sh`. The installer supports the current

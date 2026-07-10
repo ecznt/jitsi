@@ -92,6 +92,14 @@ metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
 
+bridge_joined_since_jicofo_start() {
+  local since
+  since="$(systemctl show -p ActiveEnterTimestamp --value jicofo 2>/dev/null || true)"
+  [[ -n "${since}" && "${since}" != "n/a" ]] || since="-10m"
+  journalctl -u jicofo --since "${since}" --no-pager \
+    | grep -Eq 'Added new videobridge: Bridge\[jid=jvbbrewery@internal\.auth\.'
+}
+
 no_muc_owner_errors_since_jicofo_start() {
   local since
   since="$(systemctl show -p ActiveEnterTimestamp --value jicofo 2>/dev/null || true)"
@@ -116,6 +124,7 @@ check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
+check "Jicofo discovered JVB bridge" bridge_joined_since_jicofo_start
 check "No Prosody MUC owner errors since Jicofo start" no_muc_owner_errors_since_jicofo_start
 check "Prometheus JVB target UP" prom_target_up
 check "Grafana dashboard provisioned" grafana_has_dashboard

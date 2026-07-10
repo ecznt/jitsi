@@ -457,12 +457,8 @@ install_systemd_units() {
 
 start_services() {
   log "Starting services"
-  systemctl enable prosody jicofo jitsi-videobridge nginx prometheus grafana-server
-  systemctl restart prosody
-  systemctl restart jicofo
-  sleep 5
-  systemctl restart jitsi-videobridge
-  systemctl restart nginx prometheus grafana-server
+  bash "${ROOT_DIR}/scripts/20-stop-services.sh"
+  bash "${ROOT_DIR}/scripts/30-start-services.sh"
 }
 
 write_report() {
