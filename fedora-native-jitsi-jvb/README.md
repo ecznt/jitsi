@@ -167,6 +167,16 @@ script tag was inserted inside a JavaScript block. Update and rerun the
 installer; it removes previous injected config script tags and reinserts them
 only before `</head>`.
 
+If joining a room shows `You have been disconnected`, verify the browser XMPP
+path first:
+
+```bash
+curl -k -i --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/http-bind
+```
+
+The first-phase web config intentionally omits XMPP WebSocket and uses BOSH for
+browser signaling. Colibri WebSocket for JVB media remains enabled separately.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:

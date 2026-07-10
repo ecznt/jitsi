@@ -366,6 +366,18 @@ Uncaught SyntaxError: expected expression, got '<'
 Guncel installer once eski hatali script tag satirlarini temizler, sonra
 scriptleri yalnizca `</head>` oncesine ekler.
 
+Join sonrasi "You have been disconnected" gorulurse once BOSH endpointini
+kontrol edin:
+
+```bash
+curl -k -i --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/http-bind
+```
+
+HTTP `200`, `400` veya `405` Prosody/Nginx yolunun cevap verdigini gosterir.
+HTML donerse veya `502/404` gorulurse Nginx -> Prosody proxy tarafinda sorun
+vardir. Ilk faz configinde browser XMPP signaling BOSH uzerinden yapilir;
+XMPP WebSocket bilerek kapali tutulur.
+
 ## 10. Faz 2 Notlari
 
 Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:

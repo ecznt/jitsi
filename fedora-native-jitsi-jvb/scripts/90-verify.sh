@@ -79,6 +79,11 @@ web_index_references_interface_config() {
   ' <<< "${body}"
 }
 
+xmpp_bosh_smoke() {
+  status="$(curl -k -sS -o /dev/null -w '%{http_code}' --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  [[ "${status}" =~ ^(200|400|405)$ ]]
+}
+
 metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
@@ -97,6 +102,7 @@ check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|j
 check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
+check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
 check "Prometheus JVB target UP" prom_target_up
 check "Grafana dashboard provisioned" grafana_has_dashboard
