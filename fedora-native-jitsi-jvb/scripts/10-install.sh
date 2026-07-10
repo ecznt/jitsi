@@ -267,13 +267,32 @@ configure_prosody() {
   install -d -m 0755 /etc/prosody/conf.d
   export PROSODY_PLUGIN_PATH="${NATIVE_ROOT}/usr/share/jitsi-meet/prosody-plugins"
   render_template "${ROOT_DIR}/templates/prosody-jitsi.cfg.lua.tpl" "/etc/prosody/conf.d/${JITSI_DOMAIN}.cfg.lua"
-  check_output="$(prosodyctl check config 2>&1)"
+  disable_conflicting_prosody_confs "/etc/prosody/conf.d/${JITSI_DOMAIN}.cfg.lua"
+  if ! check_output="$(timeout 30 prosodyctl check config 2>&1)"; then
+    echo "${check_output}"
+    die "Prosody config check failed or timed out."
+  fi
   echo "${check_output}"
   if grep -Eiq 'failed to load|No such file or directory|Check for typos' <<< "${check_output}"; then
     die "Prosody config check reported module load failures."
   fi
   prosodyctl register focus "auth.${JITSI_DOMAIN}" "${JICOFO_AUTH_PASSWORD}" || true
   prosodyctl register jvb "auth.${JITSI_DOMAIN}" "${JVB_AUTH_PASSWORD}" || true
+}
+
+disable_conflicting_prosody_confs() {
+  local keep_conf="$1"
+  local conf stamp
+  stamp="$(date +%Y%m%d%H%M%S)"
+
+  shopt -s nullglob
+  for conf in /etc/prosody/conf.d/*.cfg.lua; do
+    [[ -f "${conf}" ]] || continue
+    [[ "$(readlink -f "${conf}")" == "$(readlink -f "${keep_conf}")" ]] && continue
+    log "Disabling non-lab Prosody config: ${conf}"
+    mv "${conf}" "${conf}.disabled-by-jitsi-native.${stamp}"
+  done
+  shopt -u nullglob
 }
 
 write_wrappers() {

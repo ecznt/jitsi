@@ -94,7 +94,10 @@ prosody_http_listener() {
 
 prosody_config_check() {
   local check_output
-  check_output="$(prosodyctl check config 2>&1)"
+  if ! check_output="$(timeout 30 prosodyctl check config 2>&1)"; then
+    echo "${check_output}"
+    return 1
+  fi
   echo "${check_output}"
   ! grep -Eiq 'failed to load|No such file or directory|Check for typos' <<< "${check_output}"
 }

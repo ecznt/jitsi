@@ -2,7 +2,25 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
-modules_enabled = modules_enabled or {}
+modules_enabled = modules_enabled or {
+    "roster";
+    "saslauth";
+    "tls";
+    "dialback";
+    "disco";
+    "carbons";
+    "pep";
+    "private";
+    "blocklist";
+    "vcard4";
+    "vcard_legacy";
+    "version";
+    "uptime";
+    "time";
+    "ping";
+    "register";
+    "admin_adhoc";
+}
 table.insert(modules_enabled, "http")
 
 http_ports = { 5280 }
