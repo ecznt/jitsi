@@ -79,6 +79,15 @@ web_index_references_interface_config() {
   ' <<< "${body}"
 }
 
+nginx_has_xmpp_routes() {
+  local conf="/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
+  [[ -f "${conf}" ]] || return 1
+  grep -q 'location \^~ /http-bind' "${conf}" || return 1
+  grep -q 'proxy_pass http://127.0.0.1:5280/http-bind' "${conf}" || return 1
+  grep -q 'location \^~ /xmpp-websocket' "${conf}" || return 1
+  grep -q 'proxy_pass http://127.0.0.1:5280/xmpp-websocket' "${conf}" || return 1
+}
+
 xmpp_bosh_smoke() {
   body="$(curl -k -sS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
   if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
@@ -147,6 +156,7 @@ check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|j
 check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
+check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "Prosody BOSH POST through Nginx" xmpp_bosh_post_smoke
 check "Prosody XMPP WebSocket through Nginx" xmpp_websocket_smoke

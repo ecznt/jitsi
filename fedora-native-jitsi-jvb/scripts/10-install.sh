@@ -341,6 +341,7 @@ render_configs() {
   backup_file "${JITSI_MEET_ROOT}/logging_config.js"
   cp "/etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js" "${JITSI_MEET_ROOT}/logging_config.js"
   render_template "${ROOT_DIR}/templates/nginx-jitsi.conf.tpl" "/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
+  disable_conflicting_nginx_confs "/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
   render_template "${ROOT_DIR}/templates/prometheus-jitsi.yml.tpl" /etc/prometheus/prometheus.yml
   backup_file /etc/grafana/provisioning/datasources/prometheus.yml
   cp "${ROOT_DIR}/templates/grafana-datasource-prometheus.yml" /etc/grafana/provisioning/datasources/prometheus.yml
@@ -351,6 +352,23 @@ render_configs() {
   chown -R grafana:grafana /var/lib/grafana/dashboards
   chown -R root:jitsi /etc/jitsi/jicofo /etc/jitsi/videobridge
   chmod 0640 /etc/jitsi/jicofo/jicofo.conf /etc/jitsi/videobridge/jvb.conf
+}
+
+disable_conflicting_nginx_confs() {
+  local keep_conf="$1"
+  local conf stamp
+  stamp="$(date +%Y%m%d%H%M%S)"
+
+  shopt -s nullglob
+  for conf in /etc/nginx/conf.d/*.conf /etc/nginx/sites-enabled/*; do
+    [[ -f "${conf}" ]] || continue
+    [[ "$(readlink -f "${conf}")" == "$(readlink -f "${keep_conf}")" ]] && continue
+    if grep -Eq 'server_name[[:space:]]' "${conf}" && grep -Fq "${JITSI_DOMAIN}" "${conf}"; then
+      log "Disabling conflicting Nginx config for ${JITSI_DOMAIN}: ${conf}"
+      mv "${conf}" "${conf}.disabled-by-jitsi-native.${stamp}"
+    fi
+  done
+  shopt -u nullglob
 }
 
 configure_grafana_admin() {
