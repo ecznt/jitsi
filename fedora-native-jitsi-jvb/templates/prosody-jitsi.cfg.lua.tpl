@@ -2,11 +2,8 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
-modules_enabled = {
-    "http";
-    "bosh";
-    "websocket";
-}
+modules_enabled = modules_enabled or {}
+table.insert(modules_enabled, "http")
 
 http_ports = { 5280 }
 http_interfaces = { "127.0.0.1" }
@@ -35,12 +32,6 @@ VirtualHost "${JITSI_DOMAIN}"
         "websocket";
         "smacks";
         "pubsub";
-        "speakerstats";
-        "conference_duration";
-        "muc_lobby_rooms";
-        "muc_breakout_rooms";
-        "av_moderation";
-        "room_metadata";
     }
     c2s_require_encryption = false
     lobby_muc = "lobby.${JITSI_DOMAIN}"
@@ -62,9 +53,6 @@ Component "conference.${JITSI_DOMAIN}" "muc"
     modules_enabled = {
         "muc_meeting_id";
         "muc_domain_mapper";
-        "polls";
-        "muc_rate_limit";
-        "muc_password_whitelist";
     }
     admins = { "focus@auth.${JITSI_DOMAIN}" }
     muc_room_locking = false
@@ -90,9 +78,6 @@ Component "internal.auth.${JITSI_DOMAIN}" "muc"
 
 Component "focus.${JITSI_DOMAIN}" "client_proxy"
     target_address = "focus@auth.${JITSI_DOMAIN}"
-
-Component "speakerstats.${JITSI_DOMAIN}" "speakerstats_component"
-    muc_component = "conference.${JITSI_DOMAIN}"
 
 Component "conferenceduration.${JITSI_DOMAIN}" "conference_duration_component"
     muc_component = "conference.${JITSI_DOMAIN}"

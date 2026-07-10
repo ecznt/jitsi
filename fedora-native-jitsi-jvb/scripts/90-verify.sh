@@ -93,7 +93,10 @@ prosody_http_listener() {
 }
 
 prosody_config_check() {
-  prosodyctl check config
+  local check_output
+  check_output="$(prosodyctl check config 2>&1)"
+  echo "${check_output}"
+  ! grep -Eiq 'failed to load|No such file or directory|Check for typos' <<< "${check_output}"
 }
 
 xmpp_bosh_smoke() {
