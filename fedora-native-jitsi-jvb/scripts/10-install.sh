@@ -279,6 +279,11 @@ configure_prosody() {
   fi
   prosodyctl register focus "auth.${JITSI_DOMAIN}" "${JICOFO_AUTH_PASSWORD}" || true
   prosodyctl register jvb "auth.${JITSI_DOMAIN}" "${JVB_AUTH_PASSWORD}" || true
+  # The client_proxy component only sees Jicofo after this roster subscription.
+  prosodyctl mod_roster_command subscribe \
+    "focus.${JITSI_DOMAIN}" \
+    "focus@auth.${JITSI_DOMAIN}" \
+    || die "Could not subscribe the Jicofo client proxy in Prosody."
 }
 
 patch_prosody_main_modules() {

@@ -208,8 +208,14 @@ curl -k -i --http1.1 --resolve meet.example.org:443:127.0.0.1 \
 
 The web config uses XMPP WebSocket for browser signaling and keeps BOSH as a
 fallback. Colibri WebSocket for JVB media remains enabled separately. The
-verifier rejects `/http-bind` responses that contain Jitsi Meet HTML, because
-that means Nginx routed BOSH to the static web app instead of Prosody.
+verifier accepts Prosody's small BOSH status page for GET requests and validates
+an actual XML BOSH session request separately with POST.
+
+If the browser connects to XMPP but the conference request to
+`focus.<JITSI_DOMAIN>` returns `service-unavailable`, the Prosody client proxy
+does not see Jicofo's authenticated session. Update the repository and run
+`scripts/40-repair-disconnect.sh`; it provisions the required roster
+subscription before performing the ordered restart.
 
 If the journal shows `Only owners can configure rooms`, `Failed to create room`,
 or `forbidden - auth`, the internal Prosody MUC room was created with the wrong
