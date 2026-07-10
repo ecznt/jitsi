@@ -92,6 +92,11 @@ metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
 
+no_recent_muc_owner_errors() {
+  ! journalctl -u jicofo -u prosody --since -10m --no-pager \
+    | grep -Eiq 'Only owners can configure rooms|Failed to create room|forbidden - auth'
+}
+
 echo "Verification started at $(date -Is)"
 
 check "Default Java is Java 21" assert_java21
@@ -108,6 +113,7 @@ check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
+check "No recent Prosody MUC owner errors" no_recent_muc_owner_errors
 check "Prometheus JVB target UP" prom_target_up
 check "Grafana dashboard provisioned" grafana_has_dashboard
 

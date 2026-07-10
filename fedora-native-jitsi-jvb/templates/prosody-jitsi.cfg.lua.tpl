@@ -66,6 +66,8 @@ Component "internal.auth.${JITSI_DOMAIN}" "muc"
     modules_enabled = { "ping"; }
     admins = { "focus@auth.${JITSI_DOMAIN}", "jvb@auth.${JITSI_DOMAIN}" }
     muc_room_cache_size = 1000
+    muc_room_locking = false
+    muc_room_default_public_jids = true
 
 Component "focus.${JITSI_DOMAIN}" "client_proxy"
     target_address = "focus@auth.${JITSI_DOMAIN}"
@@ -81,4 +83,3 @@ Component "lobby.${JITSI_DOMAIN}" "muc"
     restrict_room_creation = true
     muc_room_locking = false
     muc_room_default_public_jids = true
-

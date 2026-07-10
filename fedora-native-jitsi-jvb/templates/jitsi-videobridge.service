@@ -1,14 +1,15 @@
 [Unit]
 Description=Jitsi Videobridge
-After=network-online.target prosody.service
-Wants=network-online.target
-Requires=prosody.service
+After=network-online.target prosody.service jicofo.service
+Wants=network-online.target jicofo.service
+Requires=prosody.service jicofo.service
 
 [Service]
 Type=simple
 User=jvb
 Group=jitsi
 EnvironmentFile=/etc/jitsi/videobridge/jvb.env
+ExecStartPre=/usr/bin/sleep 5
 ExecStart=/usr/local/sbin/jitsi-native-jvb
 Restart=on-failure
 RestartSec=5

@@ -179,6 +179,12 @@ browser signaling. Colibri WebSocket for JVB media remains enabled separately.
 The verifier rejects `/http-bind` responses that contain Jitsi Meet HTML,
 because that means Nginx routed BOSH to the static web app instead of Prosody.
 
+If the journal shows `Only owners can configure rooms`, `Failed to create room`,
+or `forbidden - auth`, the internal Prosody MUC room was created with the wrong
+owner during startup. Update to the latest `develop` branch and rerun the
+installer; it restarts Prosody first, then Jicofo, then starts JVB after Jicofo
+has had time to own the brewery room.
+
 ## Manual browser test
 
 Open the same room from two different browsers or two machines:

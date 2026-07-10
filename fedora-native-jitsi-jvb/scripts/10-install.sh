@@ -457,10 +457,12 @@ install_systemd_units() {
 
 start_services() {
   log "Starting services"
-  systemctl enable --now prosody
+  systemctl enable prosody jicofo jitsi-videobridge nginx prometheus grafana-server
   systemctl restart prosody
-  systemctl enable --now jicofo jitsi-videobridge nginx prometheus grafana-server
-  systemctl restart jicofo jitsi-videobridge nginx prometheus grafana-server
+  systemctl restart jicofo
+  sleep 5
+  systemctl restart jitsi-videobridge
+  systemctl restart nginx prometheus grafana-server
 }
 
 write_report() {

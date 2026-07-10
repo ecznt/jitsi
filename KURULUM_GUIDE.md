@@ -379,6 +379,26 @@ istegini Prosody'ye proxy etmek yerine web uygulamasina dusuruyor demektir.
 configinde browser XMPP signaling BOSH uzerinden yapilir; XMPP WebSocket bilerek
 kapali tutulur.
 
+Journal icinde su hata gorulurse Prosody internal MUC odasi yanlis sahiplikle
+olusmus demektir:
+
+```text
+Only owners can configure rooms
+Failed to create room
+forbidden - auth
+```
+
+Guncel installer Prosody'yi temiz yeniden baslatir, Jicofo'yu once kaldirir,
+sonra JVB'yi gecikmeli baslatir. Bu duzeltmeyi almak icin:
+
+```bash
+cd /opt/jitsi-lab/jitsi
+git pull origin develop
+cd fedora-native-jitsi-jvb
+sudo bash scripts/10-install.sh ./config.env
+sudo bash scripts/90-verify.sh ./config.env
+```
+
 ## 10. Faz 2 Notlari
 
 Bu fazda load test ve tuning yapilmaz. Sonraki faz icin adaylar:
