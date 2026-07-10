@@ -92,8 +92,11 @@ metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
 
-no_recent_muc_owner_errors() {
-  ! journalctl -u jicofo -u prosody --since -10m --no-pager \
+no_muc_owner_errors_since_jicofo_start() {
+  local since
+  since="$(systemctl show -p ActiveEnterTimestamp --value jicofo 2>/dev/null || true)"
+  [[ -n "${since}" && "${since}" != "n/a" ]] || since="-10m"
+  ! journalctl -u jicofo -u prosody --since "${since}" --no-pager \
     | grep -Eiq 'Only owners can configure rooms|Failed to create room|forbidden - auth'
 }
 
@@ -113,7 +116,7 @@ check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
-check "No recent Prosody MUC owner errors" no_recent_muc_owner_errors
+check "No Prosody MUC owner errors since Jicofo start" no_muc_owner_errors_since_jicofo_start
 check "Prometheus JVB target UP" prom_target_up
 check "Grafana dashboard provisioned" grafana_has_dashboard
 
