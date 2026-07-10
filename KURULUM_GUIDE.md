@@ -47,6 +47,8 @@ fedora-native-jitsi-jvb/
   scripts/
     00-discover.sh
     10-install.sh
+    20-stop-services.sh
+    30-start-services.sh
     90-verify.sh
   templates/
 ```
@@ -157,6 +159,32 @@ Installer sunlari yapar:
 ```bash
 sudo bash scripts/90-verify.sh ./config.env
 ```
+
+## 5.1 Servisleri Sirali Durdurup Baslatma
+
+Kurulumdan sonra manuel servis operasyonu gerekiyorsa toplu restart yerine bu
+siralama kullanilmalidir:
+
+```bash
+sudo bash scripts/20-stop-services.sh
+sudo bash scripts/30-start-services.sh
+sudo bash scripts/90-verify.sh ./config.env
+```
+
+Durdurma sirasi:
+
+```text
+nginx -> jitsi-videobridge -> jicofo -> prosody -> prometheus -> grafana-server
+```
+
+Baslatma sirasi:
+
+```text
+prosody -> jicofo -> jitsi-videobridge -> nginx -> prometheus -> grafana-server
+```
+
+Bu labda `prosody`, `jicofo` ve `jitsi-videobridge` servislerini tek komutta
+toplu restart etmeyin. Once Prosody, sonra Jicofo, en son JVB kalkmali.
 
 Beklenen kontroller:
 

@@ -39,6 +39,8 @@ Primary upstream references checked while preparing this package:
 - `config.env.example` - copy to `config.env` and edit for the host.
 - `scripts/00-discover.sh` - read-only discovery report.
 - `scripts/10-install.sh` - install and configure the first-phase stack.
+- `scripts/20-stop-services.sh` - stop the Jitsi stack in a safe order.
+- `scripts/30-start-services.sh` - start the Jitsi stack in the required order.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
 
@@ -57,6 +59,18 @@ sudo bash scripts/90-verify.sh ./config.env
 
 The discovery step does not change the system. Read it before running the
 installer, especially the active service and open port sections.
+
+For manual stop/start operations, use the ordered service scripts:
+
+```bash
+sudo bash scripts/20-stop-services.sh
+sudo bash scripts/30-start-services.sh
+sudo bash scripts/90-verify.sh ./config.env
+```
+
+Do not restart `prosody`, `jicofo`, and `jitsi-videobridge` together in one
+command during this lab. Jicofo must come up before JVB so it owns the internal
+brewery room.
 
 If artifact download fails with a Jitsi repository index error, update this
 repository and rerun `scripts/10-install.sh`. The installer supports the current
