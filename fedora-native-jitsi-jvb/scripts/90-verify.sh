@@ -130,12 +130,9 @@ xmpp_bosh_smoke() {
     head -n 20 <<< "${response}" >&2
     return 1
   }
-  if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
-    echo "BOSH endpoint returned HTML instead of Prosody BOSH response." >&2
-    head -n 20 <<< "${response}" >&2
-    return 1
-  fi
-  grep -Eiq 'bosh|xmpp|body|bad-request|not-authorized|missing|invalid' <<< "${body}"
+  grep -Eiq '^HTTP/[0-9.]+ 200' <<< "${response}" || return 1
+  # A GET request intentionally returns Prosody's small BOSH status page.
+  grep -Eiq 'Prosody BOSH endpoint|bosh|xmpp' <<< "${body}"
 }
 
 prosody_direct_bosh_post_smoke() {
@@ -182,7 +179,7 @@ xmpp_websocket_smoke() {
     -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
     -H 'Sec-WebSocket-Version: 13' \
     -H 'Sec-WebSocket-Protocol: xmpp' \
-    "https://${JITSI_DOMAIN}/xmpp-websocket" || true)"
+    "https://${JITSI_DOMAIN}/xmpp-websocket" 2>/dev/null || true)"
   grep -qi 'X-Jitsi-Native-Route: xmpp-websocket' <<< "${headers}" || {
     echo "Nginx did not select the /xmpp-websocket proxy location." >&2
     head -n 20 <<< "${headers}" >&2
@@ -196,19 +193,19 @@ metrics_smoke() {
 }
 
 bridge_joined_since_jicofo_start() {
-  local since
+  local since logs
   since="$(systemctl show -p ActiveEnterTimestamp --value jicofo 2>/dev/null || true)"
   [[ -n "${since}" && "${since}" != "n/a" ]] || since="-10m"
-  journalctl -u jicofo --since "${since}" --no-pager \
-    | grep -Eq 'Added new videobridge: Bridge\[jid=jvbbrewery@internal\.auth\.'
+  logs="$(journalctl -u jicofo --since "${since}" --no-pager 2>/dev/null || true)"
+  grep -Eq 'Added new videobridge: Bridge\[jid=jvbbrewery@internal\.auth\.' <<< "${logs}"
 }
 
 no_muc_owner_errors_since_jicofo_start() {
-  local since
+  local since logs
   since="$(systemctl show -p ActiveEnterTimestamp --value jicofo 2>/dev/null || true)"
   [[ -n "${since}" && "${since}" != "n/a" ]] || since="-10m"
-  ! journalctl -u jicofo -u prosody --since "${since}" --no-pager \
-    | grep -Eiq 'Only owners can configure rooms|Failed to create room|forbidden - auth'
+  logs="$(journalctl -u jicofo -u prosody --since "${since}" --no-pager 2>/dev/null || true)"
+  ! grep -Eiq 'Only owners can configure rooms|Failed to create room|forbidden - auth' <<< "${logs}"
 }
 
 echo "Verification started at $(date -Is)"
