@@ -2,7 +2,7 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
-modules_enabled = modules_enabled or {
+modules_enabled = {
     "roster";
     "saslauth";
     "tls";
@@ -20,8 +20,8 @@ modules_enabled = modules_enabled or {
     "ping";
     "register";
     "admin_adhoc";
+    "http";
 }
-table.insert(modules_enabled, "http")
 
 http_ports = { 5280 }
 http_interfaces = { "127.0.0.1" }
@@ -68,27 +68,18 @@ VirtualHost "auth.${JITSI_DOMAIN}"
 
 Component "conference.${JITSI_DOMAIN}" "muc"
     storage = "memory"
-    modules_enabled = {
-        "muc_meeting_id";
-        "muc_domain_mapper";
-    }
     admins = { "focus@auth.${JITSI_DOMAIN}" }
     muc_room_locking = false
     muc_room_default_public_jids = true
 
 Component "breakout.${JITSI_DOMAIN}" "muc"
     storage = "memory"
-    modules_enabled = {
-        "muc_meeting_id";
-        "muc_domain_mapper";
-    }
     admins = { "focus@auth.${JITSI_DOMAIN}" }
     muc_room_locking = false
     muc_room_default_public_jids = true
 
 Component "internal.auth.${JITSI_DOMAIN}" "muc"
     storage = "memory"
-    modules_enabled = { "ping"; }
     admins = { "focus@auth.${JITSI_DOMAIN}", "jvb@auth.${JITSI_DOMAIN}" }
     muc_room_cache_size = 1000
     muc_room_locking = false
