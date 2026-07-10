@@ -45,8 +45,9 @@ var config = {
     },
 
     bosh: '//${JITSI_DOMAIN}/http-bind',
-    // XMPP WebSocket is intentionally omitted for the first Fedora-native lab.
-    // Browser signaling uses BOSH; JVB media still uses Colibri WebSocket.
+    websocket: 'wss://${JITSI_DOMAIN}/xmpp-websocket',
+    // Browser signaling uses XMPP WebSocket first and BOSH as fallback.
+    // JVB media still uses Colibri WebSocket separately.
     clientNode: 'http://jitsi.org/jitsimeet',
 
     // Keep two-party smoke tests on JVB instead of direct browser P2P.

@@ -88,6 +88,31 @@ xmpp_bosh_smoke() {
   grep -Eiq 'bosh|xmpp|body|bad-request|not-authorized|missing|invalid' <<< "${body}"
 }
 
+xmpp_bosh_post_smoke() {
+  local rid body
+  rid="$(date +%s%N)"
+  body="$(curl -k -sS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" \
+    -H 'Content-Type: text/xml; charset=utf-8' \
+    --data "<body rid='${rid}' xmlns='http://jabber.org/protocol/httpbind' to='${JITSI_DOMAIN}' xml:lang='en' wait='60' hold='1' content='text/xml; charset=utf-8' ver='1.6' xmpp:version='1.0' xmlns:xmpp='urn:xmpp:xbosh'/>" \
+    "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
+    echo "BOSH POST returned Jitsi Meet HTML instead of Prosody XML." >&2
+    return 1
+  fi
+  grep -Eiq '<body|sid=|urn:xmpp:xbosh|stream:features|not-authorized|bad-request' <<< "${body}"
+}
+
+xmpp_websocket_smoke() {
+  local headers
+  headers="$(curl -k -sS -i --max-time 5 --http1.1 --resolve "${JITSI_DOMAIN}:443:127.0.0.1" \
+    -H 'Connection: Upgrade' \
+    -H 'Upgrade: websocket' \
+    -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+    -H 'Sec-WebSocket-Version: 13' \
+    "https://${JITSI_DOMAIN}/xmpp-websocket" || true)"
+  grep -Eiq 'HTTP/[0-9.]+ 101|101 Switching Protocols' <<< "${headers}"
+}
+
 metrics_smoke() {
   curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
 }
@@ -123,6 +148,8 @@ check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
+check "Prosody BOSH POST through Nginx" xmpp_bosh_post_smoke
+check "Prosody XMPP WebSocket through Nginx" xmpp_websocket_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
 check "Jicofo discovered JVB bridge" bridge_joined_since_jicofo_start
 check "No Prosody MUC owner errors since Jicofo start" no_muc_owner_errors_since_jicofo_start

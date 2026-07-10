@@ -194,16 +194,22 @@ installer; it removes previous injected config script tags and reinserts them
 only before `</head>`.
 
 If joining a room shows `You have been disconnected`, verify the browser XMPP
-path first:
+paths first:
 
 ```bash
 curl -k -i --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/http-bind
+curl -k -i --http1.1 --resolve meet.example.org:443:127.0.0.1 \
+  -H 'Connection: Upgrade' \
+  -H 'Upgrade: websocket' \
+  -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+  -H 'Sec-WebSocket-Version: 13' \
+  https://meet.example.org/xmpp-websocket
 ```
 
-The first-phase web config intentionally omits XMPP WebSocket and uses BOSH for
-browser signaling. Colibri WebSocket for JVB media remains enabled separately.
-The verifier rejects `/http-bind` responses that contain Jitsi Meet HTML,
-because that means Nginx routed BOSH to the static web app instead of Prosody.
+The web config uses XMPP WebSocket for browser signaling and keeps BOSH as a
+fallback. Colibri WebSocket for JVB media remains enabled separately. The
+verifier rejects `/http-bind` responses that contain Jitsi Meet HTML, because
+that means Nginx routed BOSH to the static web app instead of Prosody.
 
 If the journal shows `Only owners can configure rooms`, `Failed to create room`,
 or `forbidden - auth`, the internal Prosody MUC room was created with the wrong
