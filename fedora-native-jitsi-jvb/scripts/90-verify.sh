@@ -92,6 +92,10 @@ prosody_http_listener() {
   timeout 3 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/5280'
 }
 
+prosody_config_check() {
+  prosodyctl check config
+}
+
 xmpp_bosh_smoke() {
   local response body
   response="$(curl -k -sS -i --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
@@ -197,6 +201,7 @@ check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
+check "Prosody config check" prosody_config_check
 check "Prosody HTTP listener on 5280" prosody_http_listener
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "Direct Prosody BOSH POST" prosody_direct_bosh_post_smoke

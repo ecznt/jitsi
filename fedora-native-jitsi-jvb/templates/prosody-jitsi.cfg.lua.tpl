@@ -2,10 +2,24 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
+modules_enabled = {
+    "http";
+    "bosh";
+    "websocket";
+}
+
 http_ports = { 5280 }
 http_interfaces = { "127.0.0.1" }
 https_ports = { }
 https_interfaces = { }
+
+http_default_host = "${JITSI_DOMAIN}"
+http_external_url = "https://${JITSI_DOMAIN}/"
+http_paths = {
+    bosh = "/http-bind";
+    websocket = "/xmpp-websocket";
+}
+trusted_proxies = { "127.0.0.1", "::1" }
 
 consider_bosh_secure = true
 consider_websocket_secure = true

@@ -266,6 +266,7 @@ configure_prosody() {
   install -d -m 0755 /etc/prosody/conf.d
   export PROSODY_PLUGIN_PATH="${NATIVE_ROOT}/usr/share/jitsi-meet/prosody-plugins"
   render_template "${ROOT_DIR}/templates/prosody-jitsi.cfg.lua.tpl" "/etc/prosody/conf.d/${JITSI_DOMAIN}.cfg.lua"
+  prosodyctl check config
   prosodyctl register focus "auth.${JITSI_DOMAIN}" "${JICOFO_AUTH_PASSWORD}" || true
   prosodyctl register jvb "auth.${JITSI_DOMAIN}" "${JVB_AUTH_PASSWORD}" || true
 }
