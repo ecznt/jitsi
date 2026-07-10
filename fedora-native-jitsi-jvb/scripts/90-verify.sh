@@ -80,8 +80,12 @@ web_index_references_interface_config() {
 }
 
 xmpp_bosh_smoke() {
-  status="$(curl -k -sS -o /dev/null -w '%{http_code}' --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
-  [[ "${status}" =~ ^(200|400|405)$ ]]
+  body="$(curl -k -sS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
+    echo "BOSH endpoint returned Jitsi Meet HTML instead of Prosody BOSH response." >&2
+    return 1
+  fi
+  grep -Eiq 'bosh|xmpp|body|bad-request|not-authorized|missing|invalid' <<< "${body}"
 }
 
 metrics_smoke() {

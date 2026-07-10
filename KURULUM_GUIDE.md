@@ -373,10 +373,11 @@ kontrol edin:
 curl -k -i --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/http-bind
 ```
 
-HTTP `200`, `400` veya `405` Prosody/Nginx yolunun cevap verdigini gosterir.
-HTML donerse veya `502/404` gorulurse Nginx -> Prosody proxy tarafinda sorun
-vardir. Ilk faz configinde browser XMPP signaling BOSH uzerinden yapilir;
-XMPP WebSocket bilerek kapali tutulur.
+HTML (`<html>`, `app.bundle`, Jitsi Meet index) donerse Nginx `/http-bind`
+istegini Prosody'ye proxy etmek yerine web uygulamasina dusuruyor demektir.
+`502/404` gorulurse de Nginx -> Prosody proxy tarafinda sorun vardir. Ilk faz
+configinde browser XMPP signaling BOSH uzerinden yapilir; XMPP WebSocket bilerek
+kapali tutulur.
 
 ## 10. Faz 2 Notlari
 

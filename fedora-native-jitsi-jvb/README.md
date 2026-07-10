@@ -176,6 +176,8 @@ curl -k -i --resolve meet.example.org:443:127.0.0.1 https://meet.example.org/htt
 
 The first-phase web config intentionally omits XMPP WebSocket and uses BOSH for
 browser signaling. Colibri WebSocket for JVB media remains enabled separately.
+The verifier rejects `/http-bind` responses that contain Jitsi Meet HTML,
+because that means Nginx routed BOSH to the static web app instead of Prosody.
 
 ## Manual browser test
 
