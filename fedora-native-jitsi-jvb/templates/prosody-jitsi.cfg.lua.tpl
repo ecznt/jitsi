@@ -2,6 +2,11 @@ plugin_paths = { "${PROSODY_PLUGIN_PATH}" }
 
 admins = { "focus@auth.${JITSI_DOMAIN}" }
 
+http_ports = { 5280 }
+http_interfaces = { "127.0.0.1" }
+https_ports = { }
+https_interfaces = { }
+
 consider_bosh_secure = true
 consider_websocket_secure = true
 
