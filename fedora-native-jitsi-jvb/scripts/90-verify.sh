@@ -83,29 +83,59 @@ nginx_has_xmpp_routes() {
   local conf="/etc/nginx/conf.d/${JITSI_DOMAIN}.conf"
   [[ -f "${conf}" ]] || return 1
   grep -q 'location \^~ /http-bind' "${conf}" || return 1
-  grep -q 'proxy_pass http://127.0.0.1:5280/http-bind' "${conf}" || return 1
+  grep -q 'proxy_pass http://127.0.0.1:5280' "${conf}" || return 1
   grep -q 'location \^~ /xmpp-websocket' "${conf}" || return 1
-  grep -q 'proxy_pass http://127.0.0.1:5280/xmpp-websocket' "${conf}" || return 1
+  grep -q 'X-Jitsi-Native-Route xmpp-websocket' "${conf}" || return 1
 }
 
 xmpp_bosh_smoke() {
-  body="$(curl -k -sS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  local response body
+  response="$(curl -k -sS -i --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  body="$(sed -n '/^\r\?$/,$p' <<< "${response}")"
+  grep -qi 'X-Jitsi-Native-Route: bosh' <<< "${response}" || {
+    echo "Nginx did not select the /http-bind proxy location." >&2
+    head -n 20 <<< "${response}" >&2
+    return 1
+  }
   if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
-    echo "BOSH endpoint returned Jitsi Meet HTML instead of Prosody BOSH response." >&2
+    echo "BOSH endpoint returned HTML instead of Prosody BOSH response." >&2
+    head -n 20 <<< "${response}" >&2
     return 1
   fi
   grep -Eiq 'bosh|xmpp|body|bad-request|not-authorized|missing|invalid' <<< "${body}"
 }
 
-xmpp_bosh_post_smoke() {
+prosody_direct_bosh_post_smoke() {
   local rid body
   rid="$(date +%s%N)"
-  body="$(curl -k -sS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" \
+  body="$(curl -sS \
+    -H "Host: ${JITSI_DOMAIN}" \
+    -H 'Content-Type: text/xml; charset=utf-8' \
+    --data "<body rid='${rid}' xmlns='http://jabber.org/protocol/httpbind' to='${JITSI_DOMAIN}' xml:lang='en' wait='60' hold='1' content='text/xml; charset=utf-8' ver='1.6' xmpp:version='1.0' xmlns:xmpp='urn:xmpp:xbosh'/>" \
+    "http://127.0.0.1:5280/http-bind")" || return 1
+  if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
+    echo "Direct Prosody BOSH returned HTML." >&2
+    return 1
+  fi
+  grep -Eiq '<body|sid=|urn:xmpp:xbosh|stream:features|not-authorized|bad-request' <<< "${body}"
+}
+
+xmpp_bosh_post_smoke() {
+  local rid response body
+  rid="$(date +%s%N)"
+  response="$(curl -k -sS -i --resolve "${JITSI_DOMAIN}:443:127.0.0.1" \
     -H 'Content-Type: text/xml; charset=utf-8' \
     --data "<body rid='${rid}' xmlns='http://jabber.org/protocol/httpbind' to='${JITSI_DOMAIN}' xml:lang='en' wait='60' hold='1' content='text/xml; charset=utf-8' ver='1.6' xmpp:version='1.0' xmlns:xmpp='urn:xmpp:xbosh'/>" \
     "https://${JITSI_DOMAIN}/http-bind")" || return 1
+  body="$(sed -n '/^\r\?$/,$p' <<< "${response}")"
+  grep -qi 'X-Jitsi-Native-Route: bosh' <<< "${response}" || {
+    echo "Nginx did not select the /http-bind proxy location for POST." >&2
+    head -n 20 <<< "${response}" >&2
+    return 1
+  }
   if grep -qi '<html\|<!doctype html\|app.bundle' <<< "${body}"; then
-    echo "BOSH POST returned Jitsi Meet HTML instead of Prosody XML." >&2
+    echo "BOSH POST returned HTML instead of Prosody XML." >&2
+    head -n 20 <<< "${response}" >&2
     return 1
   fi
   grep -Eiq '<body|sid=|urn:xmpp:xbosh|stream:features|not-authorized|bad-request' <<< "${body}"
@@ -118,7 +148,13 @@ xmpp_websocket_smoke() {
     -H 'Upgrade: websocket' \
     -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
     -H 'Sec-WebSocket-Version: 13' \
+    -H 'Sec-WebSocket-Protocol: xmpp' \
     "https://${JITSI_DOMAIN}/xmpp-websocket" || true)"
+  grep -qi 'X-Jitsi-Native-Route: xmpp-websocket' <<< "${headers}" || {
+    echo "Nginx did not select the /xmpp-websocket proxy location." >&2
+    head -n 20 <<< "${headers}" >&2
+    return 1
+  }
   grep -Eiq 'HTTP/[0-9.]+ 101|101 Switching Protocols' <<< "${headers}"
 }
 
@@ -158,6 +194,7 @@ check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
 check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
+check "Direct Prosody BOSH POST" prosody_direct_bosh_post_smoke
 check "Prosody BOSH POST through Nginx" xmpp_bosh_post_smoke
 check "Prosody XMPP WebSocket through Nginx" xmpp_websocket_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke

@@ -45,23 +45,27 @@ server {
     }
 
     location ^~ /http-bind {
-        proxy_pass http://127.0.0.1:5280/http-bind;
+        proxy_pass http://127.0.0.1:5280;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto https;
         proxy_buffering off;
         proxy_read_timeout 900s;
+        add_header X-Jitsi-Native-Route bosh always;
     }
 
     location ^~ /xmpp-websocket {
-        proxy_pass http://127.0.0.1:5280/xmpp-websocket;
+        proxy_pass http://127.0.0.1:5280;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto https;
         proxy_read_timeout 900s;
+        add_header X-Jitsi-Native-Route xmpp-websocket always;
     }
 
     location /colibri-ws/ {
@@ -78,6 +82,7 @@ server {
     }
 
     location / {
+        add_header X-Jitsi-Native-Route web always;
         try_files $uri $uri/ /index.html;
     }
 }
