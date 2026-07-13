@@ -338,9 +338,16 @@ disable_conflicting_prosody_confs() {
 
 write_wrappers() {
   log "Writing service wrappers"
-  local jhome
+  local jhome jvb_runtime
+  local -a jvb_selector
   jhome="$(java21_home)"
+  jvb_runtime="$(jvb_runtime_opts)"
+  read -r -a jvb_selector <<< "$(jvb_gc_selector_opts)"
+  "${jhome}/bin/java" "${jvb_selector[@]}" -version >/dev/null 2>&1 \
+    || die "Java 21 does not support the selected JVB GC profile: ${JVB_GC_PROFILE}"
   install -d -m 0755 /usr/local/sbin /etc/jitsi/jicofo /etc/jitsi/videobridge /var/log/jitsi
+  install -d -m 0750 -o jvb -g jitsi /var/lib/jitsi-videobridge/diagnostics
+  restorecon -R /var/lib/jitsi-videobridge /var/log/jitsi 2>/dev/null || true
 
   cat > /etc/jitsi/jicofo/jicofo.env <<EOF
 JAVA_HOME=${jhome}
@@ -354,8 +361,10 @@ JAVA_HOME=${jhome}
 JVB_HOME=${JVB_HOME}
 JVB_LAUNCHER=${JVB_LAUNCHER}
 JVB_MAIN_CLASS=org.jitsi.videobridge.MainKt
+JVB_GC_PROFILE=${JVB_GC_PROFILE}
+JVB_JFR_ENABLED=${JVB_JFR_ENABLED}
 JVB_HEAP_OPTS='-Xms${JVB_HEAP} -Xmx${JVB_HEAP}'
-JVB_RUNTIME_OPTS='-XX:+UseG1GC -Xlog:gc*:file=/var/log/jitsi/jvb-gc.log:time,uptime,level,tags:filecount=10,filesize=50M'
+JVB_RUNTIME_OPTS='${jvb_runtime}'
 EOF
 
   cat > /usr/local/sbin/jitsi-native-jicofo <<'EOF'

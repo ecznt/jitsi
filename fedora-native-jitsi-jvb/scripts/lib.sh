@@ -16,14 +16,71 @@ need_root() {
 
 load_env() {
   local env_file="${1:-./config.env}"
+  local profile_file
   [[ -f "${env_file}" ]] || die "Missing env file: ${env_file}"
   # shellcheck disable=SC1090
   source "${env_file}"
+
+  if [[ -n "${JVB_PROFILE_FILE:-}" ]]; then
+    profile_file="${JVB_PROFILE_FILE}"
+    if [[ "${profile_file}" != /* ]]; then
+      profile_file="$(dirname "${env_file}")/${profile_file}"
+    fi
+    [[ -f "${profile_file}" ]] || die "Missing JVB profile file: ${profile_file}"
+    # shellcheck disable=SC1090
+    source "${profile_file}"
+  fi
+
+  if [[ -n "${JVB_PROFILE_FILE:-}" || -n "${JVB_GC_PROFILE:-}" ]]; then
+    JVB_PROFILE_ENFORCED=true
+  else
+    JVB_PROFILE_ENFORCED=false
+  fi
+  JVB_GC_PROFILE="${JVB_GC_PROFILE:-g1}"
+  JVB_JFR_ENABLED="${JVB_JFR_ENABLED:-false}"
+  JVB_G1_MAX_PAUSE_MS="${JVB_G1_MAX_PAUSE_MS:-50}"
+  JVB_G1_RESERVE_PERCENT="${JVB_G1_RESERVE_PERCENT:-20}"
+  JVB_JFR_MAXAGE="${JVB_JFR_MAXAGE:-2h}"
+  JVB_JFR_MAXSIZE="${JVB_JFR_MAXSIZE:-1g}"
+
   : "${JITSI_DOMAIN:?JITSI_DOMAIN is required}"
   : "${TLS_MODE:?TLS_MODE is required}"
   : "${JITSI_REPO_URL:?JITSI_REPO_URL is required}"
   : "${JVB_HEAP:?JVB_HEAP is required}"
   : "${JICOFO_HEAP:?JICOFO_HEAP is required}"
+
+  [[ "${JVB_GC_PROFILE}" == "g1" || "${JVB_GC_PROFILE}" == "zgc" ]] \
+    || die "JVB_GC_PROFILE must be g1 or zgc."
+  [[ "${JVB_JFR_ENABLED}" == "true" || "${JVB_JFR_ENABLED}" == "false" ]] \
+    || die "JVB_JFR_ENABLED must be true or false."
+  [[ "${JVB_G1_MAX_PAUSE_MS}" =~ ^[1-9][0-9]*$ ]] \
+    || die "JVB_G1_MAX_PAUSE_MS must be a positive integer."
+  [[ "${JVB_G1_RESERVE_PERCENT}" =~ ^[1-9][0-9]*$ ]] \
+    || die "JVB_G1_RESERVE_PERCENT must be a positive integer."
+}
+
+jvb_gc_selector_opts() {
+  case "${JVB_GC_PROFILE}" in
+    g1)
+      printf '%s\n' "-XX:+UseG1GC -XX:MaxGCPauseMillis=${JVB_G1_MAX_PAUSE_MS} -XX:G1ReservePercent=${JVB_G1_RESERVE_PERCENT}"
+      ;;
+    zgc)
+      printf '%s\n' '-XX:+UseZGC -XX:+ZGenerational'
+      ;;
+  esac
+}
+
+jvb_runtime_opts() {
+  local opts diagnostics_dir gc_log
+  diagnostics_dir=/var/lib/jitsi-videobridge/diagnostics
+  gc_log="/var/log/jitsi/jvb-${JVB_GC_PROFILE}-gc.log"
+  opts="$(jvb_gc_selector_opts) -XX:+AlwaysPreTouch"
+  opts+=" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${diagnostics_dir} -XX:+ExitOnOutOfMemoryError"
+  opts+=" -Xlog:gc*,safepoint:file=${gc_log}:time,uptime,level,tags:filecount=10,filesize=100M"
+  if [[ "${JVB_JFR_ENABLED}" == "true" ]]; then
+    opts+=" -XX:StartFlightRecording=filename=${diagnostics_dir}/jvb-${JVB_GC_PROFILE}.jfr,settings=profile,dumponexit=true,maxage=${JVB_JFR_MAXAGE},maxsize=${JVB_JFR_MAXSIZE}"
+  fi
+  printf '%s\n' "${opts}"
 }
 
 prosody_focus_proxy_roster_file() {

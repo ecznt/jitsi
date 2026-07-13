@@ -104,5 +104,5 @@ Fill this after running the installer and verifier on the Fedora host.
 - jitsi-meet-torture or synthetic browser clients
 - UDP/NIC/kernel tuning
 - JVB `stress_level` tracking under controlled load
-- Java 21 G1GC/ZGC comparison
+- 120-participant G1/Generational ZGC benchmark and acceptance report
 - multi-JVB architecture

@@ -22,7 +22,8 @@ thread changes.
 - Jicofo and JVB are launched with Java 21 from systemd.
 - Java 17 fallback is not automatic. If Java 21 compatibility fails, the
   verification script reports the failure.
-- JVB starts with G1GC, equal Xms/Xmx, and GC logs under `/var/log/jitsi/`.
+- JVB supports selectable latency-focused G1 and Java 21 Generational ZGC
+  profiles with equal Xms/Xmx and GC logs under `/var/log/jitsi/`.
 - The scripts use official Jitsi Debian repository artifacts because Jitsi's
   official easy-install path is Debian/Ubuntu package based. Fedora does not
   have the same official native package path. The artifacts are extracted and
@@ -45,7 +46,9 @@ Primary upstream references checked while preparing this package:
 - `scripts/50-build-toy-client.sh` - build TOY in an isolated temporary copy with the Fedora runtime overlay.
 - `scripts/60-install-monitoring.sh` - install JVB JMX metrics, Fedora host metrics, alerts, and the capacity dashboard.
 - `scripts/60-deploy-toy-client.sh` - back up and deploy the TOY web client without restarting Jitsi services.
+- `scripts/70-apply-jvb-jvm-profile.sh` - validate and apply a selected G1 or Generational ZGC profile.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
+- `profiles/` - production-oriented 120-participant G1 and Generational ZGC presets.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
 
 ## Usage on the Fedora server
@@ -101,6 +104,61 @@ timedatectl status
 On Windows, run `Get-Date -AsUTC`. A VM clock that is several minutes ahead can
 place all fresh Prometheus samples outside Grafana's browser-selected range.
 Fix the VM clock/NTP state before deleting or changing dashboard queries.
+
+## JVB JVM profiles for a 120-participant test
+
+The profile presets assume a dedicated production test host with at least 32 GB
+RAM and enough CPU/network headroom. Both use an 8 GB fixed, pre-touched heap,
+rotating GC/safepoint logs, heap dumps on OOM, fail-fast OOM handling, and a
+two-hour/1 GB rolling JFR recording.
+
+| Profile | Collector options | Intended comparison |
+| --- | --- | --- |
+| `profiles/jvb-g1-120.env` | G1, 50 ms pause goal, 20% evacuation reserve | Balanced latency/throughput baseline |
+| `profiles/jvb-zgc-120.env` | Java 21 Generational ZGC | Lowest GC pause candidate when CPU is not constrained |
+
+Select one profile in `config.env`:
+
+```bash
+JVB_PROFILE_FILE=profiles/jvb-g1-120.env
+```
+
+Validate Java support and print the exact JVM options without changing the
+server:
+
+```bash
+sudo bash scripts/70-apply-jvb-jvm-profile.sh ./config.env --print-only
+```
+
+Apply the profile during a maintenance window. This command restarts only JVB,
+so active meetings on the bridge disconnect:
+
+```bash
+sudo bash scripts/70-apply-jvb-jvm-profile.sh ./config.env
+sudo bash scripts/90-verify.sh ./config.env
+```
+
+To stage the installed environment without restarting JVB, use
+`--no-restart`. A later JVB restart activates it. To compare ZGC, change the
+selection and repeat:
+
+```bash
+JVB_PROFILE_FILE=profiles/jvb-zgc-120.env
+```
+
+Diagnostics are written to:
+
+- `/var/log/jitsi/jvb-g1-gc.log*` or `/var/log/jitsi/jvb-zgc-gc.log*`
+- `/var/lib/jitsi-videobridge/diagnostics/jvb-g1.jfr` or `jvb-zgc.jfr`
+- `/var/lib/jitsi-videobridge/diagnostics/` for OOM heap dumps
+
+Reserve at least 12 GB free under `/var` before an 8 GB profile test. The
+rolling JFR can use 1 GB, GC logs can use up to 1 GB per profile, and an OOM
+heap dump can approach the configured heap size.
+
+Do not combine G1 and ZGC collector flags. The installer and profile script
+generate a mutually exclusive option set and the verifier checks the active
+JVB command line against the selected profile.
 
 For manual stop/start operations, use the ordered service scripts:
 
@@ -335,5 +393,5 @@ journalctl -u jitsi-videobridge -u jicofo -u prosody --since -15m
 - jitsi-meet-torture or synthetic browser clients
 - UDP/NIC/kernel tuning
 - JVB `stress_level` tracking under load
-- Java 21 G1GC/ZGC comparison
+- 120-participant G1/Generational ZGC benchmark and acceptance report
 - multi-JVB topology

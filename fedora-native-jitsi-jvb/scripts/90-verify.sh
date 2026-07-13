@@ -41,6 +41,40 @@ process_uses_java21() {
   grep -Eq 'version "21\.|openjdk version "21\.' <<< "${version}"
 }
 
+jvb_gc_profile_matches() {
+  local pid cmdline
+  pid="$(systemctl show -p MainPID --value jitsi-videobridge 2>/dev/null || true)"
+  [[ -n "${pid}" && "${pid}" != "0" ]] || return 1
+  cmdline="$(tr '\0' ' ' < "/proc/${pid}/cmdline")"
+  echo "configured_profile=${JVB_GC_PROFILE}"
+  echo "configured_heap=${JVB_HEAP}"
+
+  if [[ "${JVB_PROFILE_ENFORCED}" != "true" ]]; then
+    echo "Legacy config.env has no explicit JVB JVM profile; collector enforcement skipped."
+    return 0
+  fi
+
+  grep -Fq -- "-Xms${JVB_HEAP}" <<< "${cmdline}" || return 1
+  grep -Fq -- "-Xmx${JVB_HEAP}" <<< "${cmdline}" || return 1
+  grep -Fq -- '-XX:+AlwaysPreTouch' <<< "${cmdline}" || return 1
+  case "${JVB_GC_PROFILE}" in
+    g1)
+      grep -Fq -- '-XX:+UseG1GC' <<< "${cmdline}" || return 1
+      grep -Fq -- "-XX:MaxGCPauseMillis=${JVB_G1_MAX_PAUSE_MS}" <<< "${cmdline}" || return 1
+      grep -Fq -- "-XX:G1ReservePercent=${JVB_G1_RESERVE_PERCENT}" <<< "${cmdline}" || return 1
+      ! grep -Fq -- '-XX:+UseZGC' <<< "${cmdline}" || return 1
+      ;;
+    zgc)
+      grep -Fq -- '-XX:+UseZGC' <<< "${cmdline}" || return 1
+      grep -Fq -- '-XX:+ZGenerational' <<< "${cmdline}" || return 1
+      ! grep -Fq -- '-XX:+UseG1GC' <<< "${cmdline}" || return 1
+      ;;
+  esac
+  if [[ "${JVB_JFR_ENABLED}" == "true" ]]; then
+    grep -Fq -- '-XX:StartFlightRecording=' <<< "${cmdline}" || return 1
+  fi
+}
+
 prom_target_up() {
   curl -fsG 'http://127.0.0.1:9090/api/v1/query' --data-urlencode 'query=up{job="jvb"}' \
     | grep -Eq '"value":\[[^]]+,"1"\]'
@@ -299,6 +333,7 @@ check "Node Exporter service" service_active node-exporter
 check "Grafana service" service_active grafana-server
 check "Jicofo process uses Java 21" process_uses_java21 'jicofo.*\.jar'
 check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|jvb.*\.jar'
+check "JVB JVM profile and heap" jvb_gc_profile_matches
 check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config
