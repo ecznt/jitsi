@@ -57,6 +57,13 @@ JITSI_DOMAIN="${JITSI_DOMAIN}" envsubst '${JITSI_DOMAIN}' \
 grep -q "wss://${JITSI_DOMAIN}/xmpp-websocket" "${build_root}/runtime-config.local.js" \
   || die "Rendered runtime config has the wrong XMPP WebSocket endpoint."
 
+giphy_patch="${build_root}/patches/@giphy+js-brand+3.0.0.patch"
+if [[ -f "${giphy_patch}" ]]; then
+  sed -i '/^@@ / { n; s/^$/ /; }' "${giphy_patch}"
+  git apply --numstat "${giphy_patch}" >/dev/null \
+    || die "The temporary Giphy patch is not a valid unified diff."
+fi
+
 log "Installing locked TOY client dependencies"
 (
   cd "${build_root}"
