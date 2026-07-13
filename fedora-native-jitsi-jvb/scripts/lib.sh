@@ -42,6 +42,7 @@ load_env() {
   JVB_G1_RESERVE_PERCENT="${JVB_G1_RESERVE_PERCENT:-20}"
   JVB_JFR_MAXAGE="${JVB_JFR_MAXAGE:-2h}"
   JVB_JFR_MAXSIZE="${JVB_JFR_MAXSIZE:-1g}"
+  JVB_LAST_N="${JVB_LAST_N:-16}"
 
   : "${JITSI_DOMAIN:?JITSI_DOMAIN is required}"
   : "${TLS_MODE:?TLS_MODE is required}"
@@ -57,6 +58,8 @@ load_env() {
     || die "JVB_G1_MAX_PAUSE_MS must be a positive integer."
   [[ "${JVB_G1_RESERVE_PERCENT}" =~ ^[1-9][0-9]*$ ]] \
     || die "JVB_G1_RESERVE_PERCENT must be a positive integer."
+  [[ "${JVB_LAST_N}" =~ ^[0-9]+$ ]] \
+    || die "JVB_LAST_N must be a non-negative integer."
 }
 
 jvb_gc_selector_opts() {
@@ -149,7 +152,7 @@ render_template() {
   local dst="$2"
   install -d -m 0755 "$(dirname "${dst}")"
   backup_file "${dst}"
-  envsubst '${JITSI_DOMAIN} ${TLS_DIR} ${PROSODY_PLUGIN_PATH} ${JICOFO_AUTH_PASSWORD} ${JVB_AUTH_PASSWORD} ${PRIVATE_IP} ${PUBLIC_IP} ${JITSI_MEET_ROOT} ${GRAFANA_ADMIN_USER} ${GRAFANA_ADMIN_PASSWORD}' < "${src}" > "${dst}"
+  envsubst '${JITSI_DOMAIN} ${TLS_DIR} ${PROSODY_PLUGIN_PATH} ${JICOFO_AUTH_PASSWORD} ${JVB_AUTH_PASSWORD} ${PRIVATE_IP} ${PUBLIC_IP} ${JITSI_MEET_ROOT} ${GRAFANA_ADMIN_USER} ${GRAFANA_ADMIN_PASSWORD} ${JVB_LAST_N}' < "${src}" > "${dst}"
 }
 
 java21_home() {

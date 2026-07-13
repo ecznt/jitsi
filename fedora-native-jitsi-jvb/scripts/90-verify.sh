@@ -75,6 +75,13 @@ jvb_gc_profile_matches() {
   fi
 }
 
+jvb_last_n_matches() {
+  local conf=/etc/jitsi/videobridge/jvb.conf
+  [[ -r "${conf}" ]] || return 1
+  echo "configured_jvb_last_n=${JVB_LAST_N}"
+  grep -Eq "^[[:space:]]*(videobridge\.cc\.)?jvb-last-n[[:space:]]*=[[:space:]]*${JVB_LAST_N}[[:space:]]*$" "${conf}"
+}
+
 prom_target_up() {
   curl -fsG 'http://127.0.0.1:9090/api/v1/query' --data-urlencode 'query=up{job="jvb"}' \
     | grep -Eq '"value":\[[^]]+,"1"\]'
@@ -334,6 +341,7 @@ check "Grafana service" service_active grafana-server
 check "Jicofo process uses Java 21" process_uses_java21 'jicofo.*\.jar'
 check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|jvb.*\.jar'
 check "JVB JVM profile and heap" jvb_gc_profile_matches
+check "JVB global lastN hard cap" jvb_last_n_matches
 check "Jitsi Meet web opens" web_smoke
 check "Jitsi Meet web config assets" web_asset_smoke
 check "Jitsi Meet index references interface_config.js" web_index_references_interface_config

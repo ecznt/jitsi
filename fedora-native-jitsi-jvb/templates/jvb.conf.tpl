@@ -1,4 +1,9 @@
 videobridge {
+  cc {
+    # Global hard cap. Endpoints can request fewer forwarded videos, not more.
+    jvb-last-n = ${JVB_LAST_N}
+  }
+
   ice {
     udp {
       port = 10000
@@ -90,4 +95,3 @@ ice4j {
     }
   }
 }
-

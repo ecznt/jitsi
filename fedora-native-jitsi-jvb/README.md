@@ -24,6 +24,7 @@ thread changes.
   verification script reports the failure.
 - JVB supports selectable latency-focused G1 and Java 21 Generational ZGC
   profiles with equal Xms/Xmx and GC logs under `/var/log/jitsi/`.
+- JVB enforces `JVB_LAST_N=16` as a bridge-wide forwarding cap by default.
 - The scripts use official Jitsi Debian repository artifacts because Jitsi's
   official easy-install path is Debian/Ubuntu package based. Fedora does not
   have the same official native package path. The artifacts are extracted and
@@ -47,6 +48,7 @@ Primary upstream references checked while preparing this package:
 - `scripts/60-install-monitoring.sh` - install JVB JMX metrics, Fedora host metrics, alerts, and the capacity dashboard.
 - `scripts/60-deploy-toy-client.sh` - back up and deploy the TOY web client without restarting Jitsi services.
 - `scripts/70-apply-jvb-jvm-profile.sh` - validate and apply a selected G1 or Generational ZGC profile.
+- `scripts/75-apply-jvb-last-n.sh` - apply only the bridge-wide lastN cap with automatic rollback.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
 - `profiles/` - production-oriented 120-participant G1 and Generational ZGC presets.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
@@ -62,6 +64,13 @@ vi config.env
 sudo bash scripts/00-discover.sh
 sudo bash scripts/10-install.sh ./config.env
 sudo bash scripts/90-verify.sh ./config.env
+```
+
+To change only the installed JVB forwarding cap without rerunning the full
+installer:
+
+```bash
+sudo bash scripts/75-apply-jvb-last-n.sh ./config.env
 ```
 
 The discovery step does not change the system. Read it before running the
