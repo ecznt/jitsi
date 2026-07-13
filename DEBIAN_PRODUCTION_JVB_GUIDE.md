@@ -119,7 +119,7 @@ sudo hostnamectl set-hostname jvb-prod-01
 sudo apt update
 sudo apt full-upgrade
 sudo apt install -y ca-certificates curl gnupg2 apt-transport-https \
-  openjdk-21-jdk-headless chrony ufw jq netcat-openbsd
+  openjdk-21-jdk-headless chrony ufw jq netcat-openbsd git
 sudo systemctl enable --now chrony
 ```
 
@@ -135,6 +135,23 @@ ip -br address
 free -h
 df -h /var
 ```
+
+Bu rehberin kullandigi version-controlled alert ve dashboard dosyalarini
+production host'a alin. Asagidaki `REPO_ROOT` degeri sonraki adimlarda aynen
+kullanilir:
+
+```bash
+export REPO_ROOT=/opt/jitsi-jvb-deployment
+sudo git clone --depth 1 --branch develop \
+  https://github.com/ecznt/jitsi.git "${REPO_ROOT}"
+sudo git -C "${REPO_ROOT}" rev-parse HEAD
+sudo test -f "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/prometheus-jvb-alerts.yml.tpl"
+sudo test -f "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/grafana-dashboard-jvb.json"
+```
+
+Clone ciktisindaki commit SHA'yi change kaydina yazin. Production kurulumu
+tamamlandiktan sonra `develop` branch'ini otomatik pull etmeyin; yeni commit'i
+once staging'de kabul edin.
 
 `openjdk version "21` ve `System clock synchronized: yes` gorulmeden
 production'a gecmeyin. Yanlis saat
@@ -500,8 +517,9 @@ scrape_configs:
 Bu repodaki alert kurallarini kurun:
 
 ```bash
+REPO_ROOT=/opt/jitsi-jvb-deployment
 sudo install -m 0644 \
-  fedora-native-jitsi-jvb/templates/prometheus-jvb-alerts.yml.tpl \
+  "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/prometheus-jvb-alerts.yml.tpl" \
   /etc/prometheus/jvb-alerts.yml
 sudo tee /etc/prometheus/jvb-production-memory-alerts.yml >/dev/null <<'EOF'
 groups:
@@ -556,24 +574,26 @@ sudo apt install -y grafana
 Datasource ve dashboard provisioning dosyalarini kurun:
 
 ```bash
+REPO_ROOT=/opt/jitsi-jvb-deployment
 sudo install -d -m 0755 \
   /etc/grafana/provisioning/datasources \
   /etc/grafana/provisioning/dashboards \
   /var/lib/grafana/dashboards
 
 sudo install -m 0644 \
-  fedora-native-jitsi-jvb/templates/grafana-datasource-prometheus.yml \
+  "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/grafana-datasource-prometheus.yml" \
   /etc/grafana/provisioning/datasources/prometheus.yml
 
 sudo install -m 0644 \
-  fedora-native-jitsi-jvb/templates/grafana-dashboard-provider.yml \
+  "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/grafana-dashboard-provider.yml" \
   /etc/grafana/provisioning/dashboards/jvb.yml
 
 sudo install -m 0644 \
-  fedora-native-jitsi-jvb/templates/grafana-dashboard-jvb.json \
+  "${REPO_ROOT}/fedora-native-jitsi-jvb/templates/grafana-dashboard-jvb.json" \
   /var/lib/grafana/dashboards/jvb-capacity.json
 
 sudo chown -R grafana:grafana /var/lib/grafana/dashboards
+sudo jq empty /var/lib/grafana/dashboards/jvb-capacity.json
 ```
 
 `/etc/grafana/grafana.ini` icinde Grafana'yi loopback'e bind edin:
@@ -582,6 +602,9 @@ sudo chown -R grafana:grafana /var/lib/grafana/dashboards
 [server]
 http_addr = 127.0.0.1
 http_port = 3000
+
+[auth.basic]
+password_policy = true
 ```
 
 Grafana'yi `127.0.0.1:3000` veya yalnizca monitoring VLAN'i uzerinde tutun.
@@ -600,9 +623,10 @@ Dashboard baslica sunlari gostermelidir:
 - Network throughput, drop ve error sayilari
 - JVB/metrics target availability
 
-Dashboard'da heap'i GiB cinsinden mutlak degerle ve 32 GiB soft hedef cizgisiyle
-izleyin. `heap used / heap max` yuzdesi 384 GiB hard sinira gore hesaplandigi
-icin tek basina ZGC baskisini gostermez.
+Dashboard'daki `JVM Heap Used and Maximum` paneli heap'i byte/GiB cinsinden
+mutlak olarak gosterir. 32 GiB soft hedef, `JVBHeapNearSoftMaxTarget` ve
+`JVBHeapAboveSoftMaxTarget` alarmlariyla izlenir. `heap used / heap max` yuzdesi
+384 GiB hard sinira gore hesaplandigi icin tek basina ZGC baskisini gostermez.
 
 Monitoring servislerinin JVB'yi baskilamasini engelleyin:
 
@@ -647,6 +671,40 @@ sudo systemctl enable --now jitsi-videobridge2
 
 JVB'nin pre-touch edilen initial 8 GiB heap ile baslamasi 10-30 saniye
 surebilir. `Xmx=384 GiB` bu asamada tamamen pre-touch edilmez.
+
+Monitoring ve Grafana provisioning kabul kontrolu:
+
+```bash
+systemctl is-active prometheus-node-exporter prometheus grafana-server
+curl -fsS http://127.0.0.1:9090/-/ready
+curl -fsS http://127.0.0.1:3000/api/health | jq
+curl -fsG http://127.0.0.1:9090/api/v1/query \
+  --data-urlencode 'query=up{job=~"jvb|jvb-jmx|node"}' | jq
+sudo test -r /etc/grafana/provisioning/datasources/prometheus.yml
+sudo test -r /etc/grafana/provisioning/dashboards/jvb.yml
+sudo test -r /var/lib/grafana/dashboards/jvb-capacity.json
+sudo journalctl -u grafana-server -b --no-pager \
+  | grep -Ei 'provision|error|failed' || true
+```
+
+Grafana'da `Jitsi` klasoru altinda `JVB Capacity and Bottleneck Analysis`
+dashboard'u otomatik gorunmelidir. Dashboard UID'si
+`jvb-capacity-bottlenecks` olmalidir. Datasource `Prometheus` olarak ve default
+durumda provision edilmelidir. Panel verileri `No data` gosteriyorsa once
+Prometheus `up` sorgusundaki `jvb`, `jvb-jmx` ve `node` sonuclarinin `1`
+oldugunu dogrulayin.
+
+Ilk Grafana girisi icin yonetim bilgisayarinizdan SSH tunnel acin; bu komut JVB
+sunucusunda degil yonetim bilgisayarinda calistirilir:
+
+```bash
+ssh -N -L 3000:127.0.0.1:3000 <ADMIN_USER>@<JVB_PRIVATE_IP>
+```
+
+Browser'da `http://127.0.0.1:3000` adresini acin. Yeni kurulumdaki ilk giriste
+kullanici/parola `admin` / `admin` degeridir; Grafana'nin istedigi parola
+degisikligini hemen tamamlayin. Production'da ortak admin hesabi yerine kurum
+SSO veya kisi bazli hesap kullanin.
 
 ## 15. Teknik dogrulama
 
