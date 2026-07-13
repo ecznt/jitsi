@@ -55,8 +55,6 @@ envsubst '${JITSI_DOMAIN}' \
 
 grep -q "wss://${JITSI_DOMAIN}/xmpp-websocket" "${build_root}/runtime-config.local.js" \
   || die "Rendered runtime config has the wrong XMPP WebSocket endpoint."
-grep -q 'enabled: false' "${build_root}/runtime-config.local.js" \
-  || die "Rendered runtime config does not disable P2P."
 
 log "Installing locked TOY client dependencies"
 (

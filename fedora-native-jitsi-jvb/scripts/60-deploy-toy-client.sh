@@ -54,8 +54,6 @@ done
 
 grep -q "wss://${JITSI_DOMAIN}/xmpp-websocket" "${source_root}/runtime-config.local.js" \
   || die "The TOY archive does not target ${JITSI_DOMAIN}."
-grep -q 'enabled: false' "${source_root}/runtime-config.local.js" \
-  || die "The TOY archive does not disable P2P."
 
 install -d -m 0755 "$(dirname "${TARGET_ROOT}")" "${BACKUP_ROOT}"
 [[ ! -e "${backup_path}" ]] || die "Backup path already exists: ${backup_path}"

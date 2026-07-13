@@ -77,8 +77,10 @@ The browser client does not select a JVB directly. It connects to this stack's
 Prosody and Jicofo endpoints, and Jicofo assigns the local JVB. This repository
 injects a Fedora runtime overlay while building an isolated temporary copy of
 `aburakt/toy-toplanti`. The TOY source repository and working tree are never
-modified. P2P is disabled in the overlay so two-participant calls also use the
-local JVB.
+modified. The overlay changes only `hosts.domain`, `hosts.muc`, `hosts.focus`,
+`bosh`, and `websocket`; every other TOY setting remains as defined by the TOY
+application. The validated TOY revision already has P2P disabled, so
+two-participant calls use the local JVB without an additional override.
 
 On the Fedora machine, after this Jitsi stack is healthy, run these commands
 from `fedora-native-jitsi-jvb` as a normal user:
