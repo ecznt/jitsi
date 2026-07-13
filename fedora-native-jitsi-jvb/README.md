@@ -103,6 +103,13 @@ The default remote build is pinned to the TOY commit validated by this
 integration. Set `TOY_CLIENT_REF` to another branch, tag, or commit when an
 intentional client update is required.
 
+That pinned revision declares `@jitsi/excalidraw` as `^0.0.19`, but the package
+is not published in the public npm registry or recorded in its lock file. In
+the temporary build copy only, the build script resolves it to the official
+Jitsi `v0.0.19` GitHub release tarball and regenerates the temporary lock data
+before `npm ci`. Set `TOY_EXCALIDRAW_PACKAGE_URL` to override that artifact URL
+when required.
+
 The deploy script takes a timestamped backup, enables Nginx SSI, points the web
 config aliases at the deployed TOY client, validates Nginx, and reloads only
 Nginx. Rerun build/deploy after `scripts/10-install.sh`, because the native

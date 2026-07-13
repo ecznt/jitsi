@@ -11,6 +11,7 @@ TOY_SOURCE="${2:-${TOY_CLIENT_SOURCE:-https://github.com/aburakt/toy-toplanti.gi
 TOY_REF="${TOY_CLIENT_REF:-70c8634ee8af5a59c3d73b79988d11c31ef7d28d}"
 OUTPUT_DIR="${TOY_CLIENT_OUTPUT_DIR:-${ROOT_DIR}/artifacts}"
 OUTPUT_ARCHIVE="${OUTPUT_DIR}/toy-jitsi-meet.tar.bz2"
+EXCALIDRAW_PACKAGE_URL="${TOY_EXCALIDRAW_PACKAGE_URL:-https://github.com/jitsi/excalidraw/releases/download/v0.0.19/jitsi-excalidraw-0.0.19.tgz}"
 
 load_env "${ENV_FILE}"
 require_fedora
@@ -59,6 +60,10 @@ grep -q "wss://${JITSI_DOMAIN}/xmpp-websocket" "${build_root}/runtime-config.loc
 log "Installing locked TOY client dependencies"
 (
   cd "${build_root}"
+  if [[ "$(node -p "require('./package.json').dependencies['@jitsi/excalidraw'] || ''")" == "^0.0.19" ]]; then
+    log "Resolving @jitsi/excalidraw 0.0.19 from the official Jitsi release"
+    npm install --package-lock-only --ignore-scripts --save-exact "${EXCALIDRAW_PACKAGE_URL}"
+  fi
   npm ci
 )
 
