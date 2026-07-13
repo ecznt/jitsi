@@ -1981,7 +1981,7 @@
                    {
                        "id":  40,
                        "type":  "row",
-                       "title":  "Fedora Host Capacity",
+                       "title":  "JVB Host Capacity",
                        "collapsed":  false,
                        "gridPos":  {
                                        "h":  1,
@@ -2490,7 +2490,7 @@
                                    },
                        "targets":  [
                                        {
-                                           "expr":  "node_systemd_unit_state{job=\"node\",name=~\"(jitsi-videobridge|jicofo|prosody|nginx|prometheus|grafana-server)\\\\.service\",state=\"failed\"}",
+                                           "expr":  "node_systemd_unit_state{job=\"node\",name=~\"(jitsi-videobridge2?|jicofo|prosody|nginx|prometheus|grafana-server)\\\\.service\",state=\"failed\"}",
                                            "legendFormat":  "{{name}}",
                                            "refId":  "A",
                                            "datasource":  {

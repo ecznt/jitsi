@@ -34,7 +34,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Fedora host metrics are unavailable"
+          summary: "JVB host metrics are unavailable"
           description: "Prometheus cannot scrape Node Exporter."
 
   - name: jvb-quality
@@ -83,7 +83,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Fedora host CPU is above 85 percent"
+          summary: "JVB host CPU is above 85 percent"
           description: "Sustained CPU pressure can limit packet forwarding capacity."
 
       - alert: JVBHighHostMemory
@@ -92,7 +92,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Fedora host memory is above 90 percent"
+          summary: "JVB host memory is above 90 percent"
           description: "The host has less than ten percent readily available memory."
 
       - alert: JVBHighHeapUsage

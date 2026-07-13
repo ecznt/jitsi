@@ -1,5 +1,9 @@
 # Fedora Native Jitsi Videobridge Kurulum Guide
 
+> Bu dokuman Fedora laboratuvar kurulumu icindir. Debian production JVB node
+> kurulumu icin `DEBIAN_PRODUCTION_JVB_GUIDE.md` dosyasini kullanin; Fedora
+> scriptlerini Debian production makinesinde calistirmayin.
+
 Bu guide, Docker/Podman/container kullanmadan Fedora uzerinde Jitsi Videobridge odakli minimum Jitsi Meet test ortamı kurmak icindir. Hedef, production kurulumu degil; JVB performans ve debugging calismalari icin gercek browser/WebRTC trafigi ureten ilk faz lab ortamidir.
 
 ## Kapsam
