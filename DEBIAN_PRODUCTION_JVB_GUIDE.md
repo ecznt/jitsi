@@ -1,8 +1,21 @@
-# Debian Production JVB Deployment Guide
+# Debian 13 Production JVB Deployment Guide
 
 Bu dokuman yalnizca production Debian makinesindeki Jitsi Videobridge (JVB)
 sorumlulugunu kapsar. Mevcut Jitsi client'in build, deploy, Nginx veya uygulama
 ayarlari bu kapsamin disindadir.
+
+Kesin deployment profili:
+
+| Alan | Karar |
+| --- | --- |
+| Isletim sistemi | Debian 13 (Trixie) |
+| Servis | Yalnizca `jitsi-videobridge2` |
+| Java | OpenJDK 21 headless JDK |
+| Collector | Generational ZGC |
+| Heap | Sabit 8 GB (`Xms=Xmx`) |
+| Video cap | Global `lastN=16` |
+| Monitoring | Ayni makinede JMX Exporter, Node Exporter, Prometheus ve Grafana |
+| Client | Kapsam disi; mevcut client degistirilmez |
 
 ## 1. Mimari ve sorumluluk siniri
 
@@ -13,7 +26,7 @@ Mevcut client
   -> mevcut HTTPS/XMPP signaling katmani (Prosody + Jicofo)
   -> Jicofo konferans icin JVB secer
   -> client RTP/RTCP medyasini JVB_PUBLIC_IP:10000/udp adresine gonderir
-  -> Colibri WebSocket kullaniliyorsa web edge JVB_PRIVATE_IP:9090 adresine proxy yapar
+  -> Colibri WebSocket kullaniliyorsa web edge JVB_PRIVATE_IP:9091 adresine proxy yapar
 ```
 
 Bu guide su varsayimlarla yazilmistir:
@@ -23,6 +36,9 @@ Bu guide su varsayimlarla yazilmistir:
   kurulacak.
 - Yeni Debian makinesinde yalnizca `jitsi-videobridge2` ve JVB monitoring
   bilesenleri calisacak.
+- Prometheus, Node Exporter, JMX Exporter ve Grafana ayni JVB makinesinde
+  calisacak ve yalnizca loopback/yonetim agindan erisilecek.
+- JVM yalnizca OpenJDK 21 Generational ZGC profiliyle calisacak.
 - Container kullanilmayacak.
 - Tek JVB ile baslanacak. Tek JVB restart edilirse aktif toplantilar kesilir.
 
@@ -60,9 +76,9 @@ goruldugunu teyit etmesini isteyin. Client tarafinda degisiklik yapilmaz.
 120 kisilik tek konferans hedefi icin baslangic tabani:
 
 - En az 16 fiziksel/garantili vCPU
-- En az 32 GB RAM
+- En az 32 GB RAM, 64 GB onerilen
 - JVB icin 8 GB sabit heap
-- Hizli yerel disk ve `/var` altinda en az 20 GB bos alan
+- Hizli yerel disk, en az 80 GB `/var` ve en az 50 GB bos alan
 - Dusuk jitter'li, simetrik ve kapasitesi olculmus ag baglantisi
 - Statik public IP veya bire bir NAT
 - NTP senkronizasyonu
@@ -71,37 +87,41 @@ Bu degerler 120 kisiyi garanti etmez. `lastN=16`, video cozunurlugu, simulcast,
 ekran paylasimi ve katilimci uplink kalitesi gercek paket hizini belirler.
 Production kabulunden once sentetik ve gercek istemci yuk testi zorunludur.
 
-## 4. Java karari
+## 4. Kesin JVM profili
 
-Jitsi'nin guncel Debian/Ubuntu self-hosting dokumani OpenJDK 17 kullanilmasini
-istiyor. Bu nedenle ilk production kabul profili:
+Bu proje icin production JVM profili kesin olarak:
 
 ```text
-OpenJDK 17 + G1GC + 8 GB heap
+OpenJDK 21 + Generational ZGC + 8 GB sabit heap
 ```
 
-Fedora laboratuvarinda dogrulanan Java 21 Generational ZGC profili bu resmi
-production tabaninin yerine dogrudan kullanilmamalidir. ZGC gerekiyorsa once
-Java 17/G1 ile signaling, medya ve monitoring kabulunu tamamlayin; daha sonra
-bu dokumanin ZGC canary bolumunu ayri bir bakim penceresinde uygulayin.
+Bu bilincli bir proje kararidir. Jitsi self-hosting dokumani halen OpenJDK 17
+belirtmektedir; bu nedenle Java/JVB paket kombinasyonu staging yuk testinde
+dogrulanmadan production trafigi acilmaz. G1 profili kurulmaz ve ayni process'te
+G1/ZGC collector flag'leri birlikte kullanilmaz.
 
 ## 5. Debian hazirligi
 
-Debian 12 veya daha yeni desteklenen bir surum kullanin. Once host'u hazirlayin:
+Debian 13 (Trixie) kullanin. Debian 13'te varsayilan headless Java OpenJDK 21'dir.
+Debian 12/backports bu production standardinin kapsami disindadir.
+
+Host'u hazirlayin:
 
 ```bash
 sudo hostnamectl set-hostname jvb-prod-01
 sudo apt update
 sudo apt full-upgrade
 sudo apt install -y ca-certificates curl gnupg2 apt-transport-https \
-  openjdk-17-jre-headless chrony ufw jq netcat-openbsd
+  openjdk-21-jdk-headless chrony ufw jq netcat-openbsd
 sudo systemctl enable --now chrony
 ```
 
 Kontrol edin:
 
 ```bash
+readlink -f "$(command -v java)"
 java -version
+java -XX:+UseZGC -XX:+ZGenerational -version
 timedatectl status
 chronyc tracking
 ip -br address
@@ -109,7 +129,8 @@ free -h
 df -h /var
 ```
 
-`System clock synchronized: yes` gorulmeden production'a gecmeyin. Yanlis saat
+`openjdk version "21` ve `System clock synchronized: yes` gorulmeden
+production'a gecmeyin. Yanlis saat
 XMPP sertifika kontrolunu, log korelasyonunu ve Grafana zaman serilerini bozar.
 
 ## 6. Ag ve firewall
@@ -120,12 +141,12 @@ JVB-only node icin gereken akislar:
 | --- | --- | --- | --- |
 | Inbound | `10000/udp` | Internet -> JVB public IP | WebRTC medya |
 | Outbound | `5222/tcp` | JVB -> Prosody | XMPP bridge kaydi |
-| Inbound | `9090/tcp` | Yalnizca web proxy -> JVB private IP | Colibri WebSocket |
+| Inbound | `9091/tcp` | Yalnizca web proxy -> JVB private IP | Colibri WebSocket |
 | Inbound | `22/tcp` | Yalnizca yonetim agi | SSH |
 | Local | `8080/tcp` | `127.0.0.1` | JVB native metrics/health |
 | Local | `9404/tcp` | `127.0.0.1` | JVM/JMX metrics |
 | Local | `9100/tcp` | `127.0.0.1` | Node Exporter |
-| Local | `9090/tcp` | `127.0.0.1` | Prometheus; public JVB HTTP ile ayni hostta cakismaya dikkat |
+| Local | `9090/tcp` | `127.0.0.1` | Prometheus |
 | Local | `3000/tcp` | `127.0.0.1` | Grafana |
 
 JVB public HTTP portu ile Prometheus'un varsayilan `9090` portu ayni makinede
@@ -174,7 +195,7 @@ sudo systemctl disable jitsi-videobridge2
 Kurulan surumleri kaydedin:
 
 ```bash
-dpkg-query -W 'jitsi-videobridge2' 'openjdk-17-jre-headless'
+dpkg-query -W 'jitsi-videobridge2' 'openjdk-21-jdk-headless'
 apt-cache policy jitsi-videobridge2
 systemctl cat jitsi-videobridge2
 ```
@@ -337,14 +358,14 @@ sudo install -d -m 0750 -o jvb -g "$(id -gn jvb)" /var/lib/jitsi-videobridge/dia
 sudo install -d -m 0750 -o jvb -g "$(id -gn jvb)" /var/log/jitsi/jvb-gc
 ```
 
-## 10. Desteklenen production JVM profili: Java 17/G1
+## 10. Production JVM profili: Java 21 Generational ZGC
 
 `/etc/jitsi/videobridge/jvm-production.env` olusturun:
 
 ```ini
 VIDEOBRIDGE_MAX_MEMORY=8192m
-VIDEOBRIDGE_GC_TYPE=G1GC
-JAVA_TOOL_OPTIONS="-Xms8g -XX:MaxGCPauseMillis=50 -XX:G1ReservePercent=20 -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jitsi-videobridge/diagnostics -XX:+ExitOnOutOfMemoryError -Xlog:gc*,safepoint:file=/var/log/jitsi/jvb-gc/g1.log:time,uptime,level,tags:filecount=10,filesize=100M -XX:StartFlightRecording=filename=/var/lib/jitsi-videobridge/diagnostics/jvb-g1.jfr,settings=profile,dumponexit=true,maxage=2h,maxsize=1g -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-1.6.0.jar=127.0.0.1:9404:/etc/jitsi/videobridge/jmx-exporter.yml"
+VIDEOBRIDGE_GC_TYPE=ZGC
+JAVA_TOOL_OPTIONS="-Xms8g -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jitsi-videobridge/diagnostics -XX:+ExitOnOutOfMemoryError -Xlog:gc*,safepoint:file=/var/log/jitsi/jvb-gc/zgc.log:time,uptime,level,tags:filecount=10,filesize=100M -XX:StartFlightRecording=filename=/var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr,settings=profile,dumponexit=true,maxage=2h,maxsize=1g -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-1.6.0.jar=127.0.0.1:9404:/etc/jitsi/videobridge/jmx-exporter.yml"
 ```
 
 ```bash
@@ -362,7 +383,8 @@ EnvironmentFile=/etc/jitsi/videobridge/jvm-production.env
 
 Jitsi'nin `jvb.sh` wrapper'i `VIDEOBRIDGE_MAX_MEMORY` degerini `-Xmx`,
 `VIDEOBRIDGE_GC_TYPE` degerini `-XX:+Use...` olarak ekler. Bu nedenle env
-dosyasinda ikinci bir collector secmeyin.
+dosyasinda ikinci bir collector secmeyin. Wrapper `UseZGC`, env dosyasi ise
+Java 21 icin `ZGenerational` secenegini saglar.
 
 ## 11. Systemd limitleri
 
@@ -405,7 +427,7 @@ ARGS="--collector.systemd --web.listen-address=127.0.0.1:9100"
 bind secenegini ekleyin:
 
 ```bash
-ARGS="--web.listen-address=127.0.0.1:9090"
+ARGS="--web.listen-address=127.0.0.1:9090 --storage.tsdb.retention.time=15d --storage.tsdb.retention.size=20GB"
 ```
 
 Mevcut Prometheus konfigurasyonunu yedekleyip
@@ -461,9 +483,9 @@ sudo promtool check rules /etc/prometheus/jvb-alerts.yml
 sudo promtool check config /etc/prometheus/prometheus.yml
 ```
 
-Production yukunde Prometheus ve Grafana'yi ayri monitoring makinesine tasimak
-daha dogrudur. Bu durumda exporter'lari private IP'ye bind edin ve portlari
-yalnizca Prometheus sunucusuna acin.
+Bu proje kararinda Prometheus ve Grafana ayni JVB makinesinde kalir. Exporter,
+Prometheus ve Grafana portlari loopback'e bind edilmis olmali; dashboard erisimi
+yonetim reverse proxy'si veya SSH tunnel uzerinden saglanmalidir.
 
 ## 13. Grafana kurulumu ve dashboard
 
@@ -527,6 +549,35 @@ Dashboard baslica sunlari gostermelidir:
 - Network throughput, drop ve error sayilari
 - JVB/metrics target availability
 
+Monitoring servislerinin JVB'yi baskilamasini engelleyin:
+
+```bash
+sudo systemctl edit prometheus
+```
+
+```ini
+[Service]
+MemoryMax=4G
+CPUQuota=200%
+OOMScoreAdjust=300
+```
+
+```bash
+sudo systemctl edit grafana-server
+```
+
+```ini
+[Service]
+MemoryMax=2G
+CPUQuota=100%
+OOMScoreAdjust=300
+```
+
+Bu limitler monitoring'i iki CPU ve toplam 6 GB memory tavaninda tutar. JVB
+icin CPU quota uygulanmaz. Yuk testinde Prometheus scrape timeout veya Grafana
+OOM gorulurse retention ve dashboard sorgularini azaltin; JVB kaynagini
+monitoring lehine dusurmeyin.
+
 ## 14. Ilk baslatma sirasi
 
 JVB'yi signaling bilgileri hazir olmadan baslatmayin:
@@ -557,10 +608,13 @@ Canli komut satirinda sunlar bulunmalidir:
 ```text
 -Xms8g
 -Xmx8192m
--XX:+UseG1GC
+-XX:+UseZGC
+-XX:+ZGenerational
 -XX:+AlwaysPreTouch
 -javaagent:...=127.0.0.1:9404:...
 ```
+
+Canli process `-XX:+UseG1GC` icermemelidir.
 
 Portlar ve metrics:
 
@@ -642,49 +696,37 @@ Her kademede en az 15 dakika bekleyin ve su degerleri kaydedin:
 Bir kademede packet drop, ICE/DTLS hatasi, sustained stress veya swap artisi
 gorulurse bir sonraki kademeye gecmeyin.
 
-## 18. Opsiyonel Java 21 Generational ZGC canary
+## 18. ZGC production kabul kontrolleri
 
-Bu adim resmi OpenJDK 17 production tabanindan sapmadir. Yalnizca staging veya
-tek JVB'nin yanina ikinci canary JVB eklenebildiginde uygulanmalidir.
-
-1. Kurum tarafindan onayli OpenJDK 21 paketini kurun.
-2. Bu makine strict JVB-only node ise `update-alternatives --config java` ile
-   Java 21'i secin. Ayni hostta baska Java servisleri varsa global alternative
-   degistirmeyin; JVB service'i icin ayri `PATH` drop-in'i hazirlayin.
-3. Asagidaki komut basarili olmadan servis config'ini degistirmeyin:
+JVB baslatildiktan sonra Java ve collector secimini process uzerinden tekrar
+dogrulayin:
 
 ```bash
-readlink -f "$(command -v java)"
-java -XX:+UseZGC -XX:+ZGenerational -version
-```
-
-4. `jvm-production.env` icinde collector ve log dosyasini degistirin:
-
-```ini
-VIDEOBRIDGE_MAX_MEMORY=8192m
-VIDEOBRIDGE_GC_TYPE=ZGC
-JAVA_TOOL_OPTIONS="-Xms8g -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jitsi-videobridge/diagnostics -XX:+ExitOnOutOfMemoryError -Xlog:gc*,safepoint:file=/var/log/jitsi/jvb-gc/zgc.log:time,uptime,level,tags:filecount=10,filesize=100M -XX:StartFlightRecording=filename=/var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr,settings=profile,dumponexit=true,maxage=2h,maxsize=1g -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-1.6.0.jar=127.0.0.1:9404:/etc/jitsi/videobridge/jmx-exporter.yml"
-```
-
-5. Bakim penceresinde restart edin ve canli JVM argumanlarini kontrol edin:
-
-```bash
-sudo systemctl restart jitsi-videobridge2
 PID=$(systemctl show -p MainPID --value jitsi-videobridge2)
 tr '\0' ' ' < "/proc/${PID}/cmdline"
+sudo jcmd "${PID}" VM.flags
+sudo jcmd "${PID}" GC.heap_info
+sudo jcmd "${PID}" JFR.check
+sudo journalctl -u jitsi-videobridge2 -b --no-pager \
+  | grep -E 'openjdk|UseZGC|ZGenerational|OutOfMemory|Exception|SEVERE'
+sudo test -s /var/log/jitsi/jvb-gc/zgc.log
+sudo test -e /var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr
 ```
 
 Canli process `UseZGC` ve `ZGenerational` icermeli, `UseG1GC` icermemelidir.
-G1 ile ayni yuk senaryosu, ayni client surumu ve ayni ag kosullari altinda
-karsilastirma yapilmadan ZGC production standardi ilan edilmez.
+JVB `NRestarts=0` olmali ve kernel OOM kaydi bulunmamalidir:
+
+```bash
+systemctl show jitsi-videobridge2 -p NRestarts -p MemoryCurrent -p MemoryPeak
+sudo journalctl -k -b --no-pager \
+  | grep -Ei 'out of memory|oom-kill|killed process' || true
+```
 
 ## 19. Rollback
 
-JVM rollback:
-
-1. `jvm-production.env` dosyasini G1 icerigine geri alin.
-2. Java 17'yi tekrar varsayilan yapin.
-3. `systemctl daemon-reload` ve JVB restart uygulayin.
+JVM rollback, G1 veya Java 17'ye gecis anlamina gelmez. Son kabul edilmis
+Java 21/ZGC env dosyasini ve paket surumunu geri yukleyin, ardindan
+`systemctl daemon-reload` ve JVB restart uygulayin.
 
 JVB config rollback:
 
@@ -712,6 +754,8 @@ yeniden dogrulanmalidir.
 
 ## 21. Referanslar
 
+- Debian 13 OpenJDK 21 paketi:
+  https://packages.debian.org/trixie/openjdk-21-jdk-headless
 - Jitsi Debian/Ubuntu self-hosting:
   https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-quickstart/
 - Jitsi scalable deployment ve JVB ayrimi:
