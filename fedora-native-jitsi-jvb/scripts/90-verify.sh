@@ -49,11 +49,6 @@ jvb_gc_profile_matches() {
   echo "configured_profile=${JVB_GC_PROFILE}"
   echo "configured_heap=${JVB_HEAP}"
 
-  if [[ "${JVB_PROFILE_ENFORCED}" != "true" ]]; then
-    echo "Legacy config.env has no explicit JVB JVM profile; collector enforcement skipped."
-    return 0
-  fi
-
   grep -Fq -- "-Xms${JVB_HEAP}" <<< "${cmdline}" || return 1
   grep -Fq -- "-Xmx${JVB_HEAP}" <<< "${cmdline}" || return 1
   grep -Fq -- '-XX:+AlwaysPreTouch' <<< "${cmdline}" || return 1

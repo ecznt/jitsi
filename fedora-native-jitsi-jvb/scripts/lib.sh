@@ -31,13 +31,11 @@ load_env() {
     source "${profile_file}"
   fi
 
-  if [[ -n "${JVB_PROFILE_FILE:-}" || -n "${JVB_GC_PROFILE:-}" ]]; then
-    JVB_PROFILE_ENFORCED=true
-  else
-    JVB_PROFILE_ENFORCED=false
-  fi
-  JVB_GC_PROFILE="${JVB_GC_PROFILE:-g1}"
-  JVB_JFR_ENABLED="${JVB_JFR_ENABLED:-false}"
+  # ZGC is the project default even for older/custom config files that do not
+  # select a profile explicitly. The verifier must always enforce that choice.
+  JVB_PROFILE_ENFORCED=true
+  JVB_GC_PROFILE="${JVB_GC_PROFILE:-zgc}"
+  JVB_JFR_ENABLED="${JVB_JFR_ENABLED:-true}"
   JVB_G1_MAX_PAUSE_MS="${JVB_G1_MAX_PAUSE_MS:-50}"
   JVB_G1_RESERVE_PERCENT="${JVB_G1_RESERVE_PERCENT:-20}"
   JVB_JFR_MAXAGE="${JVB_JFR_MAXAGE:-2h}"

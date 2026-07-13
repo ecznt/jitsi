@@ -126,11 +126,15 @@ two-hour/1 GB rolling JFR recording.
 | `profiles/jvb-g1-120.env` | G1, 50 ms pause goal, 20% evacuation reserve | Balanced latency/throughput baseline |
 | `profiles/jvb-zgc-120.env` | Java 21 Generational ZGC | Lowest GC pause candidate when CPU is not constrained |
 
-Select one profile in `config.env`:
+Fresh installations select ZGC by default through `config.env.example`:
 
 ```bash
-JVB_PROFILE_FILE=profiles/jvb-g1-120.env
+JVB_PROFILE_FILE=profiles/jvb-zgc-120.env
 ```
+
+The code-level fallback is also ZGC with JFR enabled, so an older custom
+`config.env` that omits the collector fields no longer silently falls back to
+G1. The selected profile supplies the required 8 GB heap value.
 
 Validate Java support and print the exact JVM options without changing the
 server:
@@ -148,11 +152,11 @@ sudo bash scripts/90-verify.sh ./config.env
 ```
 
 To stage the installed environment without restarting JVB, use
-`--no-restart`. A later JVB restart activates it. To compare ZGC, change the
-selection and repeat:
+`--no-restart`. A later JVB restart activates it. G1 is retained only as an
+explicit comparison or rollback profile; change the selection and repeat:
 
 ```bash
-JVB_PROFILE_FILE=profiles/jvb-zgc-120.env
+JVB_PROFILE_FILE=profiles/jvb-g1-120.env
 ```
 
 Diagnostics are written to:

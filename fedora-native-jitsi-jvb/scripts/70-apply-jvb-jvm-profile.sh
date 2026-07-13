@@ -17,8 +17,6 @@ INSTALLED_JAVA_HOME="$(sed -n 's/^JAVA_HOME=//p' "${INSTALLED_ENV}" | head -n1)"
 [[ -n "${INSTALLED_JAVA_HOME}" ]] || die "JAVA_HOME is missing from ${INSTALLED_ENV}"
 load_env "${ENV_FILE}"
 
-[[ "${JVB_PROFILE_ENFORCED}" == "true" ]] \
-  || die "Select profiles/jvb-g1-120.env or profiles/jvb-zgc-120.env with JVB_PROFILE_FILE in config.env."
 [[ "${MODE}" == "restart" || "${MODE}" == "--no-restart" || "${MODE}" == "--print-only" ]] \
   || die "Mode must be restart, --no-restart, or --print-only."
 

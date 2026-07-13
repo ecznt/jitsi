@@ -90,10 +90,17 @@ Minimum duzenlenecek alanlar:
 ```bash
 JITSI_DOMAIN=meet.example.org
 TLS_MODE=selfsigned
-JVB_HEAP=4g
+JVB_PROFILE_FILE=profiles/jvb-zgc-120.env
+JVB_HEAP=8g
+JVB_GC_PROFILE=zgc
+JVB_JFR_ENABLED=true
+JVB_LAST_N=16
 JICOFO_HEAP=1g
 ALLOW_EXISTING_SERVICES=false
 ```
+
+Varsayilan ZGC-120 profili sabit 8 GB heap kullanir. Fedora VM icin en az 32 GB
+RAM ve `/var` altinda en az 12 GB bos alan ayirin.
 
 Gercek domain ve acik 80/443 varsa:
 
