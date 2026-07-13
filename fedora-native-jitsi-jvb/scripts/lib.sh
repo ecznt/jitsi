@@ -26,6 +26,43 @@ load_env() {
   : "${JICOFO_HEAP:?JICOFO_HEAP is required}"
 }
 
+prosody_focus_proxy_roster_file() {
+  local auth_host encoded_host
+  auth_host="auth.${JITSI_DOMAIN}"
+  encoded_host="${auth_host//./%2e}"
+  printf '/var/lib/prosody/%s/roster/focus.dat\n' "${encoded_host}"
+}
+
+prosody_focus_proxy_subscription_present() {
+  local roster_file focus_jid
+  roster_file="$(prosody_focus_proxy_roster_file)"
+  focus_jid="focus.${JITSI_DOMAIN}"
+  [[ -r "${roster_file}" ]] || return 1
+  awk -v jid="${focus_jid}" '
+    index($0, "[\"" jid "\"]") {
+      in_entry = 1
+      next
+    }
+    in_entry && /\["subscription"\][[:space:]]*=[[:space:]]*"from"/ {
+      found = 1
+    }
+    in_entry && /^[[:space:]]*};/ {
+      exit !found
+    }
+    END {
+      exit !found
+    }
+  ' "${roster_file}"
+}
+
+provision_prosody_focus_proxy_subscription() {
+  prosodyctl mod_roster_command subscribe \
+    "focus.${JITSI_DOMAIN}" \
+    "focus@auth.${JITSI_DOMAIN}" \
+    || return 1
+  prosody_focus_proxy_subscription_present
+}
+
 require_fedora() {
   [[ -r /etc/os-release ]] || die "Cannot read /etc/os-release"
   # shellcheck disable=SC1091

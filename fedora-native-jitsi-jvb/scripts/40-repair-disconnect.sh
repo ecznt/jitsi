@@ -16,9 +16,8 @@ log "Resetting failed units"
 systemctl reset-failed prosody jicofo jitsi-videobridge nginx prometheus grafana-server || true
 
 log "Provisioning the Prosody client proxy subscription"
-prosodyctl mod_roster_command subscribe \
-  "focus.${JITSI_DOMAIN}" \
-  "focus@auth.${JITSI_DOMAIN}"
+provision_prosody_focus_proxy_subscription \
+  || die "Could not persist the Jicofo client proxy subscription in Prosody."
 
 log "Starting stack and waiting for Jicofo/JVB readiness"
 bash "${SCRIPT_DIR}/30-start-services.sh"

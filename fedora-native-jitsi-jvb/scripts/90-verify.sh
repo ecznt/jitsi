@@ -256,6 +256,7 @@ check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
 check "Prosody config check" prosody_config_check
 check "Prosody main config loads HTTP modules" prosody_main_http_modules
 check "Jitsi Prosody plugins are present" prosody_plugins_present
+check "Prosody focus client proxy subscription" prosody_focus_proxy_subscription_present
 check "SELinux reserves 5280 for Prosody" prosody_selinux_http_port
 check "Prosody HTTP listener on 5280" prosody_http_listener
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
