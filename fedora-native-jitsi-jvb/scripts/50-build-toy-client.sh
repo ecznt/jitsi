@@ -49,7 +49,7 @@ for required in package.json package-lock.json Makefile index.html runtime-confi
 done
 
 log "Rendering Fedora runtime configuration for ${JITSI_DOMAIN}"
-envsubst '${JITSI_DOMAIN}' \
+JITSI_DOMAIN="${JITSI_DOMAIN}" envsubst '${JITSI_DOMAIN}' \
   < "${ROOT_DIR}/templates/toy-runtime-config.js.tpl" \
   > "${build_root}/runtime-config.local.js"
 
