@@ -110,9 +110,10 @@ Jitsi `v0.0.19` GitHub release tarball and regenerates the temporary lock data
 before `npm ci`. Set `TOY_EXCALIDRAW_PACKAGE_URL` to override that artifact URL
 when required.
 
-The pinned source also contains a Giphy patch with missing unified-diff context
-markers. The build script normalizes and validates that patch in the temporary
-copy before `patch-package` runs; the TOY checkout remains unchanged.
+The pinned source also contains a CRLF-formatted Giphy patch with missing
+unified-diff context markers. The build script normalizes and validates that
+patch in the temporary copy before `patch-package` runs; the TOY checkout
+remains unchanged.
 
 The deploy script takes a timestamped backup, enables Nginx SSI, points the web
 config aliases at the deployed TOY client, validates Nginx, and reloads only
