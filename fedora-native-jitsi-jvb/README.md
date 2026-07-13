@@ -116,9 +116,11 @@ patch in the temporary copy before `patch-package` runs; the TOY checkout
 remains unchanged.
 
 The deploy script takes a timestamped backup, enables Nginx SSI, points the web
-config aliases at the deployed TOY client, validates Nginx, and reloads only
-Nginx. Rerun build/deploy after `scripts/10-install.sh`, because the native
-installer restores the official Jitsi Meet web artifact.
+`config.js` and `interface_config.js` aliases at the deployed TOY client,
+validates Nginx, and reloads only Nginx. TOY does not load `logging_config.js`,
+so its existing server alias remains unchanged. Rerun build/deploy after
+`scripts/10-install.sh`, because the native installer restores the official
+Jitsi Meet web artifact.
 
 Do not restart `prosody`, `jicofo`, and `jitsi-videobridge` together in one
 command during this lab. Jicofo must come up before JVB so it owns the internal

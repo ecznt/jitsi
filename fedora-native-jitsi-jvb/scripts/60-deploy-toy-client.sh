@@ -43,7 +43,6 @@ for required in \
   index.html \
   config.js \
   interface_config.js \
-  logging_config.js \
   runtime-config-loader.js \
   runtime-config.local.js \
   libs/app.bundle.min.js \
@@ -70,12 +69,11 @@ fi
 sed -i \
   -e "s#alias /etc/jitsi/meet/${JITSI_DOMAIN}-config.js;#alias ${TARGET_ROOT}/config.js;#" \
   -e "s#alias /etc/jitsi/meet/${JITSI_DOMAIN}-interface_config.js;#alias ${TARGET_ROOT}/interface_config.js;#" \
-  -e "s#alias /etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js;#alias ${TARGET_ROOT}/logging_config.js;#" \
   "${NGINX_CONF}"
 
 grep -Eq '^[[:space:]]*ssi[[:space:]]+on;' "${NGINX_CONF}" \
   || die "Could not enable SSI in ${NGINX_CONF}."
-for asset in config.js interface_config.js logging_config.js; do
+for asset in config.js interface_config.js; do
   grep -Fq "alias ${TARGET_ROOT}/${asset};" "${NGINX_CONF}" \
     || die "Could not route ${asset} to the TOY client."
 done
