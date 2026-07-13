@@ -57,6 +57,9 @@ grep -q "wss://${JITSI_DOMAIN}/xmpp-websocket" "${source_root}/runtime-config.lo
 install -d -m 0755 "$(dirname "${TARGET_ROOT}")" "${BACKUP_ROOT}"
 [[ ! -e "${backup_path}" ]] || die "Backup path already exists: ${backup_path}"
 cp -a "${source_root}" "${staging_root}"
+if [[ -d "${TARGET_ROOT}/prosody-plugins" && ! -e "${staging_root}/prosody-plugins" ]]; then
+  cp -a "${TARGET_ROOT}/prosody-plugins" "${staging_root}/prosody-plugins"
+fi
 chown -R root:root "${staging_root}"
 find "${staging_root}" -type d -exec chmod 0755 {} +
 find "${staging_root}" -type f -exec chmod 0644 {} +

@@ -516,7 +516,9 @@ configure_selinux_firewall() {
   log "Configuring SELinux and firewalld without disabling SELinux"
   if command -v getenforce >/dev/null 2>&1 && [[ "$(getenforce)" != "Disabled" ]]; then
     setsebool -P httpd_can_network_connect 1 || true
-    for port in 5280 8080 8888 9091; do
+    # Fedora assigns 5280 to jabber_interserver_port_t for Prosody.
+    semanage port -d -t http_port_t -p tcp 5280 2>/dev/null || true
+    for port in 8080 8888 9091; do
       semanage port -a -t http_port_t -p tcp "${port}" 2>/dev/null || semanage port -m -t http_port_t -p tcp "${port}" || true
     done
   fi

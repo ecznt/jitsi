@@ -51,7 +51,21 @@ grafana_has_dashboard() {
 }
 
 web_smoke() {
-  curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/" | grep -qi 'jitsi'
+  local body
+  body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/")" || return 1
+  grep -qi 'jitsi' <<< "${body}"
+}
+
+prosody_plugins_present() {
+  [[ -f /opt/jitsi-native/usr/share/jitsi-meet/prosody-plugins/mod_conference_duration.lua ]]
+}
+
+prosody_selinux_http_port() {
+  command -v getenforce >/dev/null 2>&1 || return 0
+  [[ "$(getenforce)" == "Disabled" ]] && return 0
+  ! semanage port -l -C 2>/dev/null \
+    | awk '$1 == "http_port_t" && $2 == "tcp" { print $0 }' \
+    | grep -Eq '(^|[[:space:],])5280([[:space:],]|$)'
 }
 
 web_asset_smoke() {
@@ -241,6 +255,8 @@ check "Jitsi Meet index references interface_config.js" web_index_references_int
 check "Nginx has XMPP proxy routes" nginx_has_xmpp_routes
 check "Prosody config check" prosody_config_check
 check "Prosody main config loads HTTP modules" prosody_main_http_modules
+check "Jitsi Prosody plugins are present" prosody_plugins_present
+check "SELinux reserves 5280 for Prosody" prosody_selinux_http_port
 check "Prosody HTTP listener on 5280" prosody_http_listener
 check "Prosody BOSH endpoint through Nginx" xmpp_bosh_smoke
 check "Direct Prosody BOSH POST" prosody_direct_bosh_post_smoke

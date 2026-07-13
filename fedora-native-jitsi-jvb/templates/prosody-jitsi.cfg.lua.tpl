@@ -28,13 +28,12 @@ VirtualHost "${JITSI_DOMAIN}"
         "bosh";
         "websocket";
         "smacks";
-        "pubsub";
+        "conference_duration";
     }
     c2s_require_encryption = false
     lobby_muc = "lobby.${JITSI_DOMAIN}"
     main_muc = "conference.${JITSI_DOMAIN}"
     speakerstats_component = "speakerstats.${JITSI_DOMAIN}"
-    conference_duration_component = "conferenceduration.${JITSI_DOMAIN}"
     breakout_rooms_muc = "breakout.${JITSI_DOMAIN}"
 
 VirtualHost "auth.${JITSI_DOMAIN}"
@@ -66,9 +65,6 @@ Component "internal.auth.${JITSI_DOMAIN}" "muc"
 
 Component "focus.${JITSI_DOMAIN}" "client_proxy"
     target_address = "focus@auth.${JITSI_DOMAIN}"
-
-Component "conferenceduration.${JITSI_DOMAIN}" "conference_duration_component"
-    muc_component = "conference.${JITSI_DOMAIN}"
 
 Component "lobby.${JITSI_DOMAIN}" "muc"
     storage = "memory"
