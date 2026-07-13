@@ -57,6 +57,10 @@ install_packages() {
     policycoreutils-python-utils \
     firewalld \
     certbot \
+    git \
+    make \
+    nodejs \
+    nodejs-npm \
     python3-certbot-nginx
 }
 

@@ -42,6 +42,8 @@ Primary upstream references checked while preparing this package:
 - `scripts/20-stop-services.sh` - stop the Jitsi stack in a safe order.
 - `scripts/30-start-services.sh` - start the Jitsi stack in the required order.
 - `scripts/40-repair-disconnect.sh` - clean ordered restart plus verification for browser disconnects.
+- `scripts/50-build-toy-client.sh` - build TOY in an isolated temporary copy with the Fedora runtime overlay.
+- `scripts/60-deploy-toy-client.sh` - back up and deploy the TOY web client without restarting Jitsi services.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
 
@@ -72,27 +74,37 @@ sudo bash scripts/90-verify.sh ./config.env
 ## Deploying the TOY web client
 
 The browser client does not select a JVB directly. It connects to this stack's
-Prosody and Jicofo endpoints, and Jicofo assigns the local JVB. The
-`aburakt/toy-toplanti` repository contains a Fedora profile that targets
-`meet.example.org` and keeps P2P disabled so two-participant calls also use the
-JVB.
+Prosody and Jicofo endpoints, and Jicofo assigns the local JVB. This repository
+injects a Fedora runtime overlay while building an isolated temporary copy of
+`aburakt/toy-toplanti`. The TOY source repository and working tree are never
+modified. P2P is disabled in the overlay so two-participant calls also use the
+local JVB.
 
-On the Fedora machine, after this Jitsi stack is healthy:
+On the Fedora machine, after this Jitsi stack is healthy, run these commands
+from `fedora-native-jitsi-jvb` as a normal user:
 
 ```bash
-git clone https://github.com/aburakt/toy-toplanti.git
-cd toy-toplanti
-cp .env.fedora.example .env.fedora
-npm ci
-npm run build:fedora
-sudo JITSI_DOMAIN=meet.example.org \
-  bash resources/deploy/install-fedora-client.sh ./jitsi-meet.tar.bz2
+bash scripts/50-build-toy-client.sh ./config.env
+sudo bash scripts/60-deploy-toy-client.sh ./config.env
+sudo bash scripts/90-verify.sh ./config.env
 ```
 
-The client deploy takes a timestamped backup, enables Nginx SSI when needed,
-validates the Nginx configuration, and reloads only Nginx. Rerun the TOY client
-deploy after `scripts/10-install.sh`, because the native installer restores the
-official Jitsi Meet web artifact.
+The build script clones `toy-toplanti` into a temporary directory. To consume an
+existing local checkout without changing it, pass its path as the second
+argument:
+
+```bash
+bash scripts/50-build-toy-client.sh ./config.env ~/Desktop/Projects/toy-toplanti
+```
+
+The default remote build is pinned to the TOY commit validated by this
+integration. Set `TOY_CLIENT_REF` to another branch, tag, or commit when an
+intentional client update is required.
+
+The deploy script takes a timestamped backup, enables Nginx SSI, points the web
+config aliases at the deployed TOY client, validates Nginx, and reloads only
+Nginx. Rerun build/deploy after `scripts/10-install.sh`, because the native
+installer restores the official Jitsi Meet web artifact.
 
 Do not restart `prosody`, `jicofo`, and `jitsi-videobridge` together in one
 command during this lab. Jicofo must come up before JVB so it owns the internal
