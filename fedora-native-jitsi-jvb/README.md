@@ -69,6 +69,31 @@ sudo bash scripts/30-start-services.sh
 sudo bash scripts/90-verify.sh ./config.env
 ```
 
+## Deploying the TOY web client
+
+The browser client does not select a JVB directly. It connects to this stack's
+Prosody and Jicofo endpoints, and Jicofo assigns the local JVB. The
+`aburakt/toy-toplanti` repository contains a Fedora profile that targets
+`meet.example.org` and keeps P2P disabled so two-participant calls also use the
+JVB.
+
+On the Fedora machine, after this Jitsi stack is healthy:
+
+```bash
+git clone https://github.com/aburakt/toy-toplanti.git
+cd toy-toplanti
+cp .env.fedora.example .env.fedora
+npm ci
+npm run build:fedora
+sudo JITSI_DOMAIN=meet.example.org \
+  bash resources/deploy/install-fedora-client.sh ./jitsi-meet.tar.bz2
+```
+
+The client deploy takes a timestamped backup, enables Nginx SSI when needed,
+validates the Nginx configuration, and reloads only Nginx. Rerun the TOY client
+deploy after `scripts/10-install.sh`, because the native installer restores the
+official Jitsi Meet web artifact.
+
 Do not restart `prosody`, `jicofo`, and `jitsi-videobridge` together in one
 command during this lab. Jicofo must come up before JVB so it owns the internal
 brewery room.

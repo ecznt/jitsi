@@ -24,6 +24,7 @@ server {
 
     root ${JITSI_MEET_ROOT};
     index index.html;
+    ssi on;
 
     add_header X-Content-Type-Options nosniff;
     add_header Referrer-Policy no-referrer;

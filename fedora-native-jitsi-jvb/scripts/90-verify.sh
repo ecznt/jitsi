@@ -55,26 +55,42 @@ web_smoke() {
 }
 
 web_asset_smoke() {
+  local body
   for asset in config.js interface_config.js logging_config.js; do
     body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/${asset}")" || return 1
     grep -q '<!doctype html\|<html' <<< "${body}" && return 1
   done
-  curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/config.js" \
-    | grep -q 'var interfaceConfig'
+  body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/config.js")" || return 1
+  grep -q 'var config' <<< "${body}" || return 1
+  body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/interface_config.js")" || return 1
+  grep -q 'var interfaceConfig' <<< "${body}"
 }
 
 web_index_references_interface_config() {
   body="$(curl -kfsS --resolve "${JITSI_DOMAIN}:443:127.0.0.1" "https://${JITSI_DOMAIN}/")" || return 1
-  grep -q 'BEGIN FEDORA NATIVE JITSI CONFIG SHIM' <<< "${body}" || return 1
-  grep -q 'var interfaceConfig = window.interfaceConfig' <<< "${body}" || return 1
-  grep -q '<script src="interface_config.js"></script>' <<< "${body}" || return 1
-  grep -q '<script src="logging_config.js"></script>' <<< "${body}" || return 1
+  if grep -q 'BEGIN FEDORA NATIVE JITSI CONFIG SHIM' <<< "${body}"; then
+    grep -q 'var interfaceConfig = window.interfaceConfig' <<< "${body}" || return 1
+    grep -q '<script src="interface_config.js"></script>' <<< "${body}" || return 1
+    grep -q '<script src="logging_config.js"></script>' <<< "${body}" || return 1
+    awk '
+      /var interfaceConfig = window\.interfaceConfig/ { interface_line = NR }
+      /<script src="logging_config\.js"><\/script>/ { logging_line = NR }
+      /<script[^>]+src="libs\/app\.bundle[^"]*"/ && app_line == 0 { app_line = NR }
+      END {
+        exit !(interface_line > 0 && logging_line > 0 && app_line > 0 && interface_line < app_line && logging_line < app_line)
+      }
+    ' <<< "${body}"
+    return
+  fi
+
+  grep -q 'runtime-config-loader.js' <<< "${body}" || return 1
+  grep -q 'var config = {' <<< "${body}" || return 1
+  grep -q 'var interfaceConfig = {' <<< "${body}" || return 1
   awk '
-    /var interfaceConfig = window\.interfaceConfig/ { interface_line = NR }
-    /<script src="logging_config\.js"><\/script>/ { logging_line = NR }
+    /runtime-config-loader\.js/ { runtime_line = NR }
     /<script[^>]+src="libs\/app\.bundle[^"]*"/ && app_line == 0 { app_line = NR }
     END {
-      exit !(interface_line > 0 && logging_line > 0 && app_line > 0 && interface_line < app_line && logging_line < app_line)
+      exit !(runtime_line > 0 && app_line > 0 && runtime_line < app_line)
     }
   ' <<< "${body}"
 }
