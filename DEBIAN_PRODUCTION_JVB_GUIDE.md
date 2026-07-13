@@ -12,7 +12,7 @@ Kesin deployment profili:
 | Servis | Yalnizca `jitsi-videobridge2` |
 | Java | OpenJDK 21 headless JDK |
 | Collector | Generational ZGC |
-| Heap | Sabit 8 GB (`Xms=Xmx`) |
+| Heap | `Xms=8g`, `SoftMaxHeapSize=32g`, `Xmx=393216m` (384 GiB) |
 | Video cap | Global `lastN=16` |
 | Monitoring | Ayni makinede JMX Exporter, Node Exporter, Prometheus ve Grafana |
 | Client | Kapsam disi; mevcut client degistirilmez |
@@ -76,12 +76,19 @@ goruldugunu teyit etmesini isteyin. Client tarafinda degisiklik yapilmaz.
 120 kisilik tek konferans hedefi icin baslangic tabani:
 
 - En az 16 fiziksel/garantili vCPU
-- En az 32 GB RAM, 64 GB onerilen
-- JVB icin 8 GB sabit heap
-- Hizli yerel disk, en az 80 GB `/var` ve en az 50 GB bos alan
+- Bu 384 GiB hard-heap profili icin en az 512 GB fiziksel RAM
+- JVB heap: 8 GiB initial, 32 GiB soft hedef, 384 GiB hard ust sinir
+- Hizli yerel disk; `/var` icin en az 80 GB ve diagnostics icin ayri,
+  en az 500 GB bos alani olan filesystem
 - Dusuk jitter'li, simetrik ve kapasitesi olculmus ag baglantisi
 - Statik public IP veya bire bir NAT
 - NTP senkronizasyonu
+
+`-Xmx393216m`, JVM'nin her acilista 384 GiB fiziksel RAM ayiracagi anlamina
+gelmez; ancak ZGC allocation baskisinda bu sinira kadar cikabilir. Bu nedenle
+512 GB altindaki host bu kesin profil icin uygun kabul edilmez. Daha kucuk bir
+hostta `Xmx` sessizce korunmaz; kapasite testiyle daha dusuk bir profil ayrica
+tasarlanir.
 
 Bu degerler 120 kisiyi garanti etmez. `lastN=16`, video cozunurlugu, simulcast,
 ekran paylasimi ve katilimci uplink kalitesi gercek paket hizini belirler.
@@ -92,7 +99,7 @@ Production kabulunden once sentetik ve gercek istemci yuk testi zorunludur.
 Bu proje icin production JVM profili kesin olarak:
 
 ```text
-OpenJDK 21 + Generational ZGC + 8 GB sabit heap
+OpenJDK 21 + Generational ZGC + Xms 8 GiB + SoftMax 32 GiB + Xmx 384 GiB
 ```
 
 Bu bilincli bir proje kararidir. Jitsi self-hosting dokumani halen OpenJDK 17
@@ -358,14 +365,23 @@ sudo install -d -m 0750 -o jvb -g "$(id -gn jvb)" /var/lib/jitsi-videobridge/dia
 sudo install -d -m 0750 -o jvb -g "$(id -gn jvb)" /var/log/jitsi/jvb-gc
 ```
 
+`/var/lib/jitsi-videobridge/diagnostics` ayri ve hizli bir filesystem uzerinde
+olmalidir. Heap dump boyutu canli heap'e bagli olarak cok buyuyebilecegi icin
+bu mount'ta en az 500 GB bos alan dogrulanmadan servisi production'a almayin:
+
+```bash
+findmnt /var/lib/jitsi-videobridge/diagnostics
+df -h /var/lib/jitsi-videobridge/diagnostics
+```
+
 ## 10. Production JVM profili: Java 21 Generational ZGC
 
 `/etc/jitsi/videobridge/jvm-production.env` olusturun:
 
 ```ini
-VIDEOBRIDGE_MAX_MEMORY=8192m
+VIDEOBRIDGE_MAX_MEMORY=393216m
 VIDEOBRIDGE_GC_TYPE=ZGC
-JAVA_TOOL_OPTIONS="-Xms8g -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jitsi-videobridge/diagnostics -XX:+ExitOnOutOfMemoryError -Xlog:gc*,safepoint:file=/var/log/jitsi/jvb-gc/zgc.log:time,uptime,level,tags:filecount=10,filesize=100M -XX:StartFlightRecording=filename=/var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr,settings=profile,dumponexit=true,maxage=2h,maxsize=1g -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-1.6.0.jar=127.0.0.1:9404:/etc/jitsi/videobridge/jmx-exporter.yml"
+JAVA_TOOL_OPTIONS="-Xms8g -XX:SoftMaxHeapSize=32g -XX:+ZGenerational -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/lib/jitsi-videobridge/diagnostics -XX:+ExitOnOutOfMemoryError -Xlog:gc*,safepoint:file=/var/log/jitsi/jvb-gc/zgc.log:time,uptime,level,tags:filecount=10,filesize=100M -XX:StartFlightRecording=filename=/var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr,settings=profile,dumponexit=true,maxage=2h,maxsize=1g -javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-1.6.0.jar=127.0.0.1:9404:/etc/jitsi/videobridge/jmx-exporter.yml"
 ```
 
 ```bash
@@ -385,6 +401,13 @@ Jitsi'nin `jvb.sh` wrapper'i `VIDEOBRIDGE_MAX_MEMORY` degerini `-Xmx`,
 `VIDEOBRIDGE_GC_TYPE` degerini `-XX:+Use...` olarak ekler. Bu nedenle env
 dosyasinda ikinci bir collector secmeyin. Wrapper `UseZGC`, env dosyasi ise
 Java 21 icin `ZGenerational` secenegini saglar.
+
+Bu profilde `Xms` bilerek `Xmx` degerine esitlenmez. `AlwaysPreTouch` yalnizca
+initial 8 GiB heap'i onceden sayfalar; 384 GiB'nin tamamini startup'ta fiziksel
+bellege dokundurmaz. ZGC normal kosulda 32 GiB soft hedefin altinda kalmaya
+calisir, fakat uygulamanin allocation'i durmasin diye gerekirse 384 GiB hard
+sinira kadar buyuyebilir. `SoftMaxHeapSize` kapasite siniri degil, ZGC heuristic
+hedefidir.
 
 ## 11. Systemd limitleri
 
@@ -441,6 +464,7 @@ global:
 
 rule_files:
   - /etc/prometheus/jvb-alerts.yml
+  - /etc/prometheus/jvb-production-memory-alerts.yml
 
 scrape_configs:
   - job_name: prometheus
@@ -479,9 +503,36 @@ Bu repodaki alert kurallarini kurun:
 sudo install -m 0644 \
   fedora-native-jitsi-jvb/templates/prometheus-jvb-alerts.yml.tpl \
   /etc/prometheus/jvb-alerts.yml
+sudo tee /etc/prometheus/jvb-production-memory-alerts.yml >/dev/null <<'EOF'
+groups:
+  - name: jvb-zgc-production-memory
+    rules:
+      - alert: JVBHeapNearSoftMaxTarget
+        expr: sum by (instance) (jvm_memory_used_bytes{job="jvb-jmx",area="heap"}) > 0.85 * 32 * 1024 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVB heap is near the 32 GiB ZGC soft target"
+          description: "Heap usage has exceeded 85 percent of the production soft target."
+
+      - alert: JVBHeapAboveSoftMaxTarget
+        expr: sum by (instance) (jvm_memory_used_bytes{job="jvb-jmx",area="heap"}) > 32 * 1024 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JVB heap is above the 32 GiB ZGC soft target"
+          description: "ZGC is using hard-ceiling headroom; inspect allocation rate, live set and GC logs."
+EOF
 sudo promtool check rules /etc/prometheus/jvb-alerts.yml
+sudo promtool check rules /etc/prometheus/jvb-production-memory-alerts.yml
 sudo promtool check config /etc/prometheus/prometheus.yml
 ```
+
+Genel alert dosyasindaki `JVBHighHeapUsage`, 384 GiB hard `Xmx` yuzdesini
+izler ve son savunma alarmidir. Bu profile eklenen iki mutlak alarm ise 32 GiB
+soft hedefi izler; production operasyonunda once bunlar dikkate alinir.
 
 Bu proje kararinda Prometheus ve Grafana ayni JVB makinesinde kalir. Exporter,
 Prometheus ve Grafana portlari loopback'e bind edilmis olmali; dashboard erisimi
@@ -549,6 +600,10 @@ Dashboard baslica sunlari gostermelidir:
 - Network throughput, drop ve error sayilari
 - JVB/metrics target availability
 
+Dashboard'da heap'i GiB cinsinden mutlak degerle ve 32 GiB soft hedef cizgisiyle
+izleyin. `heap used / heap max` yuzdesi 384 GiB hard sinira gore hesaplandigi
+icin tek basina ZGC baskisini gostermez.
+
 Monitoring servislerinin JVB'yi baskilamasini engelleyin:
 
 ```bash
@@ -590,7 +645,8 @@ sudo systemctl enable --now grafana-server
 sudo systemctl enable --now jitsi-videobridge2
 ```
 
-JVB'nin pre-touch edilen 8 GB heap ile baslamasi 10-30 saniye surebilir.
+JVB'nin pre-touch edilen initial 8 GiB heap ile baslamasi 10-30 saniye
+surebilir. `Xmx=384 GiB` bu asamada tamamen pre-touch edilmez.
 
 ## 15. Teknik dogrulama
 
@@ -607,7 +663,8 @@ Canli komut satirinda sunlar bulunmalidir:
 
 ```text
 -Xms8g
--Xmx8192m
+-Xmx393216m
+-XX:SoftMaxHeapSize=32g
 -XX:+UseZGC
 -XX:+ZGenerational
 -XX:+AlwaysPreTouch
@@ -706,6 +763,7 @@ PID=$(systemctl show -p MainPID --value jitsi-videobridge2)
 tr '\0' ' ' < "/proc/${PID}/cmdline"
 sudo jcmd "${PID}" VM.flags
 sudo jcmd "${PID}" GC.heap_info
+sudo jcmd "${PID}" VM.command_line
 sudo jcmd "${PID}" JFR.check
 sudo journalctl -u jitsi-videobridge2 -b --no-pager \
   | grep -E 'openjdk|UseZGC|ZGenerational|OutOfMemory|Exception|SEVERE'
@@ -714,6 +772,9 @@ sudo test -e /var/lib/jitsi-videobridge/diagnostics/jvb-zgc.jfr
 ```
 
 Canli process `UseZGC` ve `ZGenerational` icermeli, `UseG1GC` icermemelidir.
+`VM.flags`/`VM.command_line` ciktisinda `MaxHeapSize=412316860416`
+(393216 MiB), `SoftMaxHeapSize=34359738368` (32 GiB) ve 8 GiB initial heap
+gorulmelidir.
 JVB `NRestarts=0` olmali ve kernel OOM kaydi bulunmamalidir:
 
 ```bash
@@ -764,6 +825,8 @@ yeniden dogrulanmalidir.
   https://github.com/jitsi/jitsi-videobridge/blob/master/jvb/src/main/resources/reference.conf
 - JVB Prometheus statistics:
   https://github.com/jitsi/jitsi-videobridge/blob/master/doc/statistics.md
+- Oracle Java 21 ZGC tuning ve `SoftMaxHeapSize`:
+  https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html
 - Prometheus Node Exporter:
   https://prometheus.io/docs/guides/node-exporter/
 - Prometheus JMX Exporter Java agent:
