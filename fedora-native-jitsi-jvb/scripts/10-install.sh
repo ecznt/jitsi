@@ -26,7 +26,7 @@ guard_existing_services() {
   fi
 
   local active=()
-  for svc in nginx httpd prosody grafana-server prometheus jicofo jitsi-videobridge jitsi-videobridge2; do
+  for svc in nginx httpd prosody grafana-server prometheus node-exporter jicofo jitsi-videobridge jitsi-videobridge2; do
     if systemctl is-active --quiet "${svc}" 2>/dev/null; then
       active+=("${svc}")
     fi
@@ -413,8 +413,9 @@ render_configs() {
   cp "${ROOT_DIR}/templates/grafana-datasource-prometheus.yml" /etc/grafana/provisioning/datasources/prometheus.yml
   backup_file /etc/grafana/provisioning/dashboards/jvb.yml
   cp "${ROOT_DIR}/templates/grafana-dashboard-provider.yml" /etc/grafana/provisioning/dashboards/jvb.yml
-  backup_file /var/lib/grafana/dashboards/jvb-first-phase.json
-  cp "${ROOT_DIR}/templates/grafana-dashboard-jvb.json" /var/lib/grafana/dashboards/jvb-first-phase.json
+  rm -f /var/lib/grafana/dashboards/jvb-first-phase.json
+  backup_file /var/lib/grafana/dashboards/jvb-capacity.json
+  cp "${ROOT_DIR}/templates/grafana-dashboard-jvb.json" /var/lib/grafana/dashboards/jvb-capacity.json
   chown -R grafana:grafana /var/lib/grafana/dashboards
   chown -R root:jitsi /etc/jitsi/jicofo /etc/jitsi/videobridge
   chmod 0640 /etc/jitsi/jicofo/jicofo.conf /etc/jitsi/videobridge/jvb.conf
@@ -579,7 +580,9 @@ write_report() {
     echo "/etc/jitsi/meet/${JITSI_DOMAIN}-interface_config.js"
     echo "/etc/jitsi/meet/${JITSI_DOMAIN}-logging_config.js"
     echo "/etc/prometheus/prometheus.yml"
-    echo "/var/lib/grafana/dashboards/jvb-first-phase.json"
+    echo "/etc/prometheus/jvb-alerts.yml"
+    echo "/etc/jitsi/videobridge/jmx-exporter.yml"
+    echo "/var/lib/grafana/dashboards/jvb-capacity.json"
   } > "${REPORT}"
 }
 
@@ -600,6 +603,7 @@ patch_jitsi_meet_index
 configure_grafana_admin
 configure_selinux_firewall
 install_systemd_units
+bash "${ROOT_DIR}/scripts/60-install-monitoring.sh" "${ENV_FILE}" --no-restart
 fix_log_permissions
 start_services
 write_report

@@ -47,7 +47,51 @@ prom_target_up() {
 }
 
 grafana_has_dashboard() {
-  [[ -f /var/lib/grafana/dashboards/jvb-first-phase.json ]] && service_active grafana-server
+  [[ -f /var/lib/grafana/dashboards/jvb-capacity.json ]] \
+    && grep -q 'JVB Capacity and Bottleneck Analysis' /var/lib/grafana/dashboards/jvb-capacity.json \
+    && service_active grafana-server
+}
+
+grafana_prometheus_datasource_healthy() {
+  local body
+  body="$(curl -fsS \
+    -u "${GRAFANA_ADMIN_USER:-admin}:${GRAFANA_ADMIN_PASSWORD:-admin}" \
+    http://127.0.0.1:3000/api/datasources/uid/prometheus/health)" || return 1
+  grep -Eq '"status"[[:space:]]*:[[:space:]]*"OK"' <<< "${body}"
+}
+
+report_clock_sync() {
+  local synchronized
+  command -v timedatectl >/dev/null 2>&1 || return 0
+  synchronized="$(timedatectl show -p NTPSynchronized --value 2>/dev/null || true)"
+  echo "VM UTC time: $(date -u -Is)"
+  echo "NTP synchronized: ${synchronized:-unknown}"
+  if [[ "${synchronized}" != "yes" ]]; then
+    echo "WARN: VM time is not NTP-synchronized. Compare this UTC time with the client host; clock skew can make Grafana panels appear empty." >&2
+  fi
+}
+
+prom_target_up_job() {
+  local job="$1"
+  curl -fsG 'http://127.0.0.1:9090/api/v1/query' --data-urlencode "query=up{job=\"${job}\"}" \
+    | grep -Eq '"value":\[[^]]+,"1"\]'
+}
+
+node_metrics_smoke() {
+  local body
+  body="$(curl -fsS http://127.0.0.1:9100/metrics)" || return 1
+  grep -Eq '^node_cpu_seconds_total|^node_memory_MemAvailable_bytes' <<< "${body}"
+}
+
+jvb_jmx_metrics_smoke() {
+  local body
+  body="$(curl -fsS http://127.0.0.1:9404/metrics)" || return 1
+  grep -Eq '^jvm_memory_used_bytes|^process_cpu_seconds_total' <<< "${body}"
+}
+
+prometheus_alert_rules_loaded() {
+  curl -fsS http://127.0.0.1:9090/api/v1/rules \
+    | grep -q 'JVBTargetDown'
 }
 
 web_smoke() {
@@ -219,7 +263,11 @@ xmpp_websocket_smoke() {
 }
 
 metrics_smoke() {
-  curl -fsS http://127.0.0.1:8080/metrics | grep -Eiq 'conferences|endpoints|jvm|jitsi|videobridge'
+  local body
+  body="$(curl -fsS \
+    -H 'Accept: application/openmetrics-text; version=1.0.0; charset=utf-8, text/plain; version=0.0.4' \
+    http://127.0.0.1:8080/metrics)" || return 1
+  grep -Eq '^jitsi_jvb_(conferences|local_endpoints|healthy)' <<< "${body}"
 }
 
 bridge_joined_since_jicofo_start() {
@@ -239,6 +287,7 @@ no_muc_owner_errors_since_jicofo_start() {
 }
 
 echo "Verification started at $(date -Is)"
+report_clock_sync
 
 check "Default Java is Java 21" assert_java21
 check "Prosody service" service_active prosody
@@ -246,6 +295,7 @@ check "Jicofo service" service_active jicofo
 check "JVB service" service_active jitsi-videobridge
 check "Nginx service" service_active nginx
 check "Prometheus service" service_active prometheus
+check "Node Exporter service" service_active node-exporter
 check "Grafana service" service_active grafana-server
 check "Jicofo process uses Java 21" process_uses_java21 'jicofo.*\.jar'
 check "JVB process uses Java 21" process_uses_java21 'jitsi-videobridge.*\.jar|jvb.*\.jar'
@@ -264,10 +314,16 @@ check "Direct Prosody BOSH POST" prosody_direct_bosh_post_smoke
 check "Prosody BOSH POST through Nginx" xmpp_bosh_post_smoke
 check "Prosody XMPP WebSocket through Nginx" xmpp_websocket_smoke
 check "JVB Prometheus metrics endpoint" metrics_smoke
+check "JVB JMX metrics endpoint" jvb_jmx_metrics_smoke
+check "Fedora Node Exporter metrics endpoint" node_metrics_smoke
 check "Jicofo discovered JVB bridge" bridge_joined_since_jicofo_start
 check "No Prosody MUC owner errors since Jicofo start" no_muc_owner_errors_since_jicofo_start
 check "Prometheus JVB target UP" prom_target_up
+check "Prometheus JVB JMX target UP" prom_target_up_job jvb-jmx
+check "Prometheus Node Exporter target UP" prom_target_up_job node
+check "Prometheus bottleneck alert rules loaded" prometheus_alert_rules_loaded
 check "Grafana dashboard provisioned" grafana_has_dashboard
+check "Grafana Prometheus datasource healthy" grafana_prometheus_datasource_healthy
 
 echo
 echo "Recent JVB/Jicofo/Prosody log lines:"

@@ -56,7 +56,7 @@ java -version 2>&1 || true
 find /usr/lib/jvm -maxdepth 2 -path '*/bin/java' -type f -print 2>/dev/null || true
 
 section "Existing relevant services"
-for svc in nginx httpd prosody grafana-server prometheus jicofo jitsi-videobridge jitsi-videobridge2; do
+for svc in nginx httpd prosody grafana-server prometheus node-exporter jicofo jitsi-videobridge jitsi-videobridge2; do
   printf '%-24s ' "${svc}"
   systemctl is-active "${svc}" 2>/dev/null || true
 done
@@ -75,4 +75,3 @@ done
 
 echo
 echo "Discovery complete. Review this output before running scripts/10-install.sh."
-

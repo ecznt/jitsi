@@ -13,7 +13,7 @@ log "Repairing disconnect state with a clean ordered restart"
 bash "${SCRIPT_DIR}/20-stop-services.sh"
 
 log "Resetting failed units"
-systemctl reset-failed prosody jicofo jitsi-videobridge nginx prometheus grafana-server || true
+systemctl reset-failed prosody jicofo jitsi-videobridge nginx prometheus node-exporter grafana-server || true
 
 log "Provisioning the Prosody client proxy subscription"
 provision_prosody_focus_proxy_subscription \

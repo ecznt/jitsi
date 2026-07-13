@@ -43,6 +43,7 @@ Primary upstream references checked while preparing this package:
 - `scripts/30-start-services.sh` - start the Jitsi stack in the required order.
 - `scripts/40-repair-disconnect.sh` - clean ordered restart plus verification for browser disconnects.
 - `scripts/50-build-toy-client.sh` - build TOY in an isolated temporary copy with the Fedora runtime overlay.
+- `scripts/60-install-monitoring.sh` - install JVB JMX metrics, Fedora host metrics, alerts, and the capacity dashboard.
 - `scripts/60-deploy-toy-client.sh` - back up and deploy the TOY web client without restarting Jitsi services.
 - `scripts/90-verify.sh` - service, Java 21, metrics, and endpoint checks.
 - `templates/` - systemd, Prosody, JVB, Jicofo, Nginx, Prometheus, and Grafana templates.
@@ -62,6 +63,44 @@ sudo bash scripts/90-verify.sh ./config.env
 
 The discovery step does not change the system. Read it before running the
 installer, especially the active service and open port sections.
+
+For an existing installation, install or refresh the detailed monitoring stack:
+
+```bash
+sudo bash scripts/60-install-monitoring.sh ./config.env
+sudo bash scripts/90-verify.sh ./config.env
+```
+
+The monitoring installer restarts JVB once to load the JMX javaagent. It uses
+official checksum-verified Node Exporter and JMX Exporter artifacts. All
+exporter endpoints bind to localhost only:
+
+- JVB application metrics: `127.0.0.1:8080/metrics`
+- JVB JVM/process metrics: `127.0.0.1:9404/metrics`
+- Fedora host metrics: `127.0.0.1:9100/metrics`
+- Prometheus: `127.0.0.1:9090`
+- Grafana: `127.0.0.1:3000`
+
+Grafana provisions `JVB Capacity and Bottleneck Analysis` in the `Jitsi`
+folder. Its 40 panels cover conference and endpoint load, ICE/DTLS failures,
+RTP/RTCP transit delay, packet and network throughput, UDP/network errors, JVM
+heap/GC/threads/process CPU, and Fedora CPU/memory/swap/disk/systemd state.
+Prometheus also loads 13 rules for availability, media quality, and sustained
+capacity pressure. Firing rules appear at the top of the dashboard.
+
+Grafana uses the browser clock for its selected time range. Keep the Fedora VM
+and the client host clocks aligned. If exporters are UP but new JVM/host panels
+show `No data`, compare UTC time on both machines:
+
+```bash
+# Fedora VM
+date -u -Is
+timedatectl status
+```
+
+On Windows, run `Get-Date -AsUTC`. A VM clock that is several minutes ahead can
+place all fresh Prometheus samples outside Grafana's browser-selected range.
+Fix the VM clock/NTP state before deleting or changing dashboard queries.
 
 For manual stop/start operations, use the ordered service scripts:
 
@@ -160,11 +199,11 @@ for the first lab pass and accept the browser warning on test clients.
 After installation:
 
 - `java -version` must show Java 21.
-- `systemctl status prosody jicofo jitsi-videobridge nginx prometheus grafana-server`
+- `systemctl status prosody jicofo jitsi-videobridge nginx prometheus node-exporter grafana-server`
   should be healthy.
 - `curl http://127.0.0.1:8080/metrics` should return JVB metrics.
-- Prometheus should show the `jvb` target as UP.
-- Grafana should have a Prometheus datasource and a first-phase JVB dashboard.
+- Prometheus should show the `jvb`, `jvb-jmx`, and `node` targets as UP.
+- Grafana should have a Prometheus datasource and the JVB capacity dashboard.
 - Two browsers should be able to join the same room at
   `https://<JITSI_DOMAIN>/<room>` and establish audio/video.
 

@@ -1,41 +1,2597 @@
 {
-  "annotations": {
-    "list": []
-  },
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
-  "id": null,
-  "links": [],
-  "liveNow": false,
-  "panels": [
-    { "type": "stat", "title": "conferences", "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_conferences|jvb_conferences|conferences\"})", "refId": "A" } ] },
-    { "type": "stat", "title": "endpoints", "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_endpoints|jvb_endpoints|endpoints\"})", "refId": "A" } ] },
-    { "type": "stat", "title": "endpoints_sending_video", "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_endpoints_sending_video|jvb_endpoints_sending_video|endpoints_sending_video\"})", "refId": "A" } ] },
-    { "type": "stat", "title": "largest_conference", "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 }, "targets": [ { "expr": "max({__name__=~\"jitsi_videobridge_largest_conference|jvb_largest_conference|largest_conference\"})", "refId": "A" } ] },
-    { "type": "stat", "title": "stress_level", "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 }, "targets": [ { "expr": "max({__name__=~\"jitsi_videobridge_stress_level|jvb_stress_level|stress_level\"})", "refId": "A" } ] },
-    { "type": "stat", "title": "total_ice_failed", "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_total_ice_failed|jvb_total_ice_failed|total_ice_failed\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "bit_rate_upload", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 4 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_bit_rate_upload|jvb_bit_rate_upload|bit_rate_upload\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "bit_rate_download", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 4 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_bit_rate_download|jvb_bit_rate_download|bit_rate_download\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "rtt_aggregate", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 4 }, "targets": [ { "expr": "avg({__name__=~\"jitsi_videobridge_rtt_aggregate|jvb_rtt_aggregate|rtt_aggregate\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "packet_rate_upload", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_packet_rate_upload|jvb_packet_rate_upload|packet_rate_upload\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "packet_rate_download", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_packet_rate_download|jvb_packet_rate_download|packet_rate_download\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "total_failed_conferences", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 11 }, "targets": [ { "expr": "sum({__name__=~\"jitsi_videobridge_total_failed_conferences|jvb_total_failed_conferences|total_failed_conferences\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "JVM heap used", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 18 }, "targets": [ { "expr": "sum({__name__=~\"jvm_memory_used_bytes|jitsi_videobridge_jvm_memory_used_bytes\", area=~\"heap|.*\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "JVM thread count", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 18 }, "targets": [ { "expr": "sum({__name__=~\"jvm_threads_current|jvm_threads_live|jitsi_videobridge_jvm_threads_current\"})", "refId": "A" } ] },
-    { "type": "timeseries", "title": "GC pause/log metrics", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 18 }, "targets": [ { "expr": "sum(rate({__name__=~\"jvm_gc_pause_seconds_count|jvm_gc_collection_seconds_count|jitsi_videobridge_jvm_gc_pause_seconds_count\"}[5m]))", "refId": "A" } ] }
-  ],
-  "refresh": "15s",
-  "schemaVersion": 39,
-  "style": "dark",
-  "tags": [ "jitsi", "jvb", "first-phase" ],
-  "templating": { "list": [] },
-  "time": { "from": "now-1h", "to": "now" },
-  "timepicker": {},
-  "timezone": "",
-  "title": "JVB First Phase",
-  "uid": "jvb-first-phase",
-  "version": 1,
-  "weekStart": ""
-}
+    "annotations":  {
+                        "list":  [
 
+                                 ]
+                    },
+    "editable":  true,
+    "fiscalYearStartMonth":  0,
+    "graphTooltip":  1,
+    "id":  null,
+    "links":  [
+
+              ],
+    "liveNow":  false,
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "stat",
+                       "title":  "JVB Health",
+                       "description":  "Red means the JVB health endpoint reports unhealthy or is unavailable.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "mappings":  [
+                                                                             {
+                                                                                 "type":  "value",
+                                                                                 "options":  {
+                                                                                                 "0":  {
+                                                                                                           "text":  "UNHEALTHY",
+                                                                                                           "color":  "red"
+                                                                                                       },
+                                                                                                 "1":  {
+                                                                                                           "text":  "HEALTHY",
+                                                                                                           "color":  "green"
+                                                                                                       }
+                                                                                             }
+                                                                             }
+                                                                         ],
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "green",
+                                                                                                 "value":  1
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "none",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         },
+                                       "textMode":  "auto"
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "max(jitsi_jvb_healthy)",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "stat",
+                       "title":  "Firing Alerts",
+                       "description":  "Any non-zero value requires investigation in the alert table below.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  3,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  1
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "none",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "count(ALERTS{alertstate=\"firing\"}) or vector(0)",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "stat",
+                       "title":  "Active Conferences",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  6,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  20
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  50
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "value",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jitsi_jvb_conferences)",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "stat",
+                       "title":  "Local Endpoints",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  9,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  100
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  200
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "value",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jitsi_jvb_local_endpoints)",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "stat",
+                       "title":  "Host CPU",
+                       "description":  "Warning above 70%, critical above 85% sustained utilization.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  12,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "max":  100,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  70
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  85
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}[5m])))",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "stat",
+                       "title":  "Host Memory",
+                       "description":  "Calculated from MemAvailable, not merely free memory.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  15,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "max":  100,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  80
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  90
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\"} / node_memory_MemTotal_bytes{job=\"node\"})",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  7,
+                       "type":  "stat",
+                       "title":  "JVB Heap",
+                       "description":  "High sustained heap usage often precedes longer GC pauses.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  18,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "max":  100,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  75
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "red",
+                                                                                                 "value":  85
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * sum(jvm_memory_used_bytes{job=\"jvb-jmx\",area=\"heap\"}) / clamp_min(sum(jvm_memory_max_bytes{job=\"jvb-jmx\",area=\"heap\"}), 1)",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  8,
+                       "type":  "stat",
+                       "title":  "Root Disk Free",
+                       "description":  "Warning below 25%, critical below 15% free space.",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  3,
+                                       "x":  21,
+                                       "y":  0
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "max":  100,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "orange",
+                                                                                                 "value":  15
+                                                                                             },
+                                                                                             {
+                                                                                                 "color":  "green",
+                                                                                                 "value":  25
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "colorMode":  "background",
+                                       "graphMode":  "area",
+                                       "justifyMode":  "center",
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  "",
+                                                             "values":  false
+                                                         }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * node_filesystem_avail_bytes{job=\"node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  9,
+                       "type":  "table",
+                       "title":  "Active Bottleneck Alerts",
+                       "description":  "Prometheus rules identify sustained availability, quality, capacity, disk, JVM, and network problems.",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  4
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "custom":  {
+                                                                           "align":  "auto",
+                                                                           "cellOptions":  {
+                                                                                               "type":  "auto"
+                                                                                           },
+                                                                           "inspect":  false
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "cellHeight":  "sm",
+                                       "showHeader":  true
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "ALERTS{alertstate=\"firing\"}",
+                                           "format":  "table",
+                                           "instant":  true,
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "transformations":  [
+                                               {
+                                                   "id":  "labelsToFields",
+                                                   "options":  {
+                                                                   "mode":  "columns"
+                                                               }
+                                               }
+                                           ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  10,
+                       "type":  "row",
+                       "title":  "Conference Reliability and ICE",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "h":  1,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  10
+                                   },
+                       "panels":  [
+
+                                  ]
+                   },
+                   {
+                       "id":  11,
+                       "type":  "timeseries",
+                       "title":  "Conference and Endpoint Load",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  11
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jitsi_jvb_conferences)",
+                                           "legendFormat":  "active conferences",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jitsi_jvb_local_endpoints)",
+                                           "legendFormat":  "local endpoints",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jitsi_jvb_current_visitors)",
+                                           "legendFormat":  "visitors",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  12,
+                       "type":  "timeseries",
+                       "title":  "ICE Outcomes",
+                       "description":  "Any failed ICE increase indicates connectivity or NAT/firewall trouble.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  11
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_ice_succeeded_total[5m]))",
+                                           "legendFormat":  "ICE success/s",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_ice_failed_total[5m]))",
+                                           "legendFormat":  "ICE failed/s",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_ice_succeeded_tcp_total[5m]))",
+                                           "legendFormat":  "ICE TCP/s",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_ice_succeeded_relayed_total[5m]))",
+                                           "legendFormat":  "ICE relayed/s",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  13,
+                       "type":  "timeseries",
+                       "title":  "Conference Failure Counters",
+                       "description":  "Shows increments, not lifetime totals, so new failures stand out.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  11
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "bars",
+                                                                           "fillOpacity":  35,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "sum",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_failed_conferences_total[5m]))",
+                                           "legendFormat":  "failed",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_partially_failed_conferences_total[5m]))",
+                                           "legendFormat":  "partially failed",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_conferences_created_total[5m]))",
+                                           "legendFormat":  "created",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_conferences_completed_total[5m]))",
+                                           "legendFormat":  "completed",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  14,
+                       "type":  "timeseries",
+                       "title":  "Endpoint Transport Problems",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  19
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "bars",
+                                                                           "fillOpacity":  35,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "sum",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_endpoints_dtls_failed_total[5m]))",
+                                           "legendFormat":  "DTLS failed",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_endpoints_no_message_transport_after_delay_total[5m]))",
+                                           "legendFormat":  "no message transport",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_endpoints_disconnected_total[5m]))",
+                                           "legendFormat":  "disconnected",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(increase(jitsi_jvb_endpoints_reconnected_total[5m]))",
+                                           "legendFormat":  "reconnected",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  15,
+                       "type":  "timeseries",
+                       "title":  "RTP Transit Delay Quantiles",
+                       "description":  "Packet transit delay distribution reported by JVB; p95 growth indicates media-path pressure.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  19
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  10,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.50, sum by (le) (rate(jitsi_jvb_rtp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTP p50",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum by (le) (rate(jitsi_jvb_rtp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTP p95",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.99, sum by (le) (rate(jitsi_jvb_rtp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTP p99",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  16,
+                       "type":  "timeseries",
+                       "title":  "RTCP Transit Delay Quantiles",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  19
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  10,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.50, sum by (le) (rate(jitsi_jvb_rtcp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTCP p50",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum by (le) (rate(jitsi_jvb_rtcp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTCP p95",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.99, sum by (le) (rate(jitsi_jvb_rtcp_transit_time_bucket[5m])))",
+                                           "legendFormat":  "RTCP p99",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  20,
+                       "type":  "row",
+                       "title":  "Media Throughput and Network",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "h":  1,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  27
+                                   },
+                       "panels":  [
+
+                                  ]
+                   },
+                   {
+                       "id":  21,
+                       "type":  "timeseries",
+                       "title":  "JVB RTP Packet Rate",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  28
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "pps",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  18,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_packets_received_total[1m]))",
+                                           "legendFormat":  "received",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_packets_sent_total[1m]))",
+                                           "legendFormat":  "sent",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_relay_packets_received_total[1m]))",
+                                           "legendFormat":  "relay received",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_relay_packets_sent_total[1m]))",
+                                           "legendFormat":  "relay sent",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  22,
+                       "type":  "timeseries",
+                       "title":  "Host Network Throughput",
+                       "description":  "Non-loopback and non-container interfaces. Sudden plateaus can reveal NIC or upstream limits.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  28
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bps",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  18,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "8 * sum(rate(node_network_receive_bytes_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[1m]))",
+                                           "legendFormat":  "receive",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "8 * sum(rate(node_network_transmit_bytes_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[1m]))",
+                                           "legendFormat":  "transmit",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  23,
+                       "type":  "timeseries",
+                       "title":  "Network Drops and Errors",
+                       "description":  "Values above zero during calls indicate host NIC, driver, queue, or upstream pressure.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  28
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "pps",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "bars",
+                                                                           "fillOpacity":  35,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(node_network_receive_drop_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+                                           "legendFormat":  "RX drops",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_network_transmit_drop_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+                                           "legendFormat":  "TX drops",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_network_receive_errs_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+                                           "legendFormat":  "RX errors",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_network_transmit_errs_total{job=\"node\",device!~\"lo|docker.*|veth.*\"}[5m]))",
+                                           "legendFormat":  "TX errors",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  24,
+                       "type":  "timeseries",
+                       "title":  "Data Channel Activity",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  36
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_data_channel_messages_received_total[1m]))",
+                                           "legendFormat":  "data received/s",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_data_channel_messages_sent_total[1m]))",
+                                           "legendFormat":  "data sent/s",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_colibri_web_socket_messages_received_total[1m]))",
+                                           "legendFormat":  "Colibri WS received/s",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_colibri_web_socket_messages_sent_total[1m]))",
+                                           "legendFormat":  "Colibri WS sent/s",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  25,
+                       "type":  "timeseries",
+                       "title":  "Media Adaptation Signals",
+                       "description":  "Spikes in bitrate expirations or keyframe requests can accompany congestion and layer switching.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  36
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_incoming_bitrate_expirations_total[5m]))",
+                                           "legendFormat":  "bitrate expirations/s",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_preemptive_keyframe_requests_sent_total[5m]))",
+                                           "legendFormat":  "keyframe requests/s",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_preemptive_keyframe_requests_suppressed_total[5m]))",
+                                           "legendFormat":  "keyframe suppressed/s",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_layering_changes_received_total[5m]))",
+                                           "legendFormat":  "layer changes/s",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jitsi_jvb_dominant_speaker_changes_total[5m]))",
+                                           "legendFormat":  "speaker changes/s",
+                                           "refId":  "E",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  26,
+                       "type":  "timeseries",
+                       "title":  "UDP Stack Errors",
+                       "description":  "Receive-buffer errors are a strong signal that kernel socket buffers or CPU capacity are insufficient.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  36
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "bars",
+                                                                           "fillOpacity":  35,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(node_netstat_Udp_InErrors{job=\"node\"}[5m]))",
+                                           "legendFormat":  "UDP input errors/s",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_netstat_Udp_RcvbufErrors{job=\"node\"}[5m]))",
+                                           "legendFormat":  "UDP receive buffer errors/s",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_netstat_Udp_SndbufErrors{job=\"node\"}[5m]))",
+                                           "legendFormat":  "UDP send buffer errors/s",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_netstat_Udp_NoPorts{job=\"node\"}[5m]))",
+                                           "legendFormat":  "UDP no-port/s",
+                                           "refId":  "D",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  30,
+                       "type":  "row",
+                       "title":  "JVB JVM and Process",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "h":  1,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  44
+                                   },
+                       "panels":  [
+
+                                  ]
+                   },
+                   {
+                       "id":  31,
+                       "type":  "timeseries",
+                       "title":  "JVM Heap Used and Maximum",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  45
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bytes",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jvm_memory_used_bytes{job=\"jvb-jmx\",area=\"heap\"})",
+                                           "legendFormat":  "heap used",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jvm_memory_committed_bytes{job=\"jvb-jmx\",area=\"heap\"})",
+                                           "legendFormat":  "heap committed",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jvm_memory_max_bytes{job=\"jvb-jmx\",area=\"heap\"})",
+                                           "legendFormat":  "heap max",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  32,
+                       "type":  "timeseries",
+                       "title":  "JVM Garbage Collection",
+                       "description":  "Sustained GC time or increasing average pause indicates heap pressure or allocation churn.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  45
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "s",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(jvm_gc_collection_seconds_sum{job=\"jvb-jmx\"}[5m]))",
+                                           "legendFormat":  "GC seconds/second",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(jvm_gc_collection_seconds_sum{job=\"jvb-jmx\"}[5m])) / clamp_min(sum(rate(jvm_gc_collection_seconds_count{job=\"jvb-jmx\"}[5m])), 0.000001)",
+                                           "legendFormat":  "average GC pause",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  33,
+                       "type":  "timeseries",
+                       "title":  "JVB Process CPU",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  45
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * rate(process_cpu_seconds_total{job=\"jvb-jmx\"}[5m])",
+                                           "legendFormat":  "JVB CPU",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  34,
+                       "type":  "timeseries",
+                       "title":  "JVM Threads",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  53
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jvm_threads_current{job=\"jvb-jmx\"})",
+                                           "legendFormat":  "live",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jvm_threads_daemon{job=\"jvb-jmx\"})",
+                                           "legendFormat":  "daemon",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jvm_threads_deadlocked{job=\"jvb-jmx\"})",
+                                           "legendFormat":  "deadlocked",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  35,
+                       "type":  "timeseries",
+                       "title":  "JVM Classes and Buffers",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  53
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(jvm_classes_currently_loaded{job=\"jvb-jmx\"})",
+                                           "legendFormat":  "loaded classes",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(jvm_buffer_pool_used_bytes{job=\"jvb-jmx\"})",
+                                           "legendFormat":  "buffer pool bytes",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  36,
+                       "type":  "timeseries",
+                       "title":  "Process File Descriptors and Uptime",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  53
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "process_open_fds{job=\"jvb-jmx\"}",
+                                           "legendFormat":  "open FDs",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "process_max_fds{job=\"jvb-jmx\"}",
+                                           "legendFormat":  "max FDs",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "(time() - process_start_time_seconds{job=\"jvb-jmx\"}) / 3600",
+                                           "legendFormat":  "uptime hours",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  40,
+                       "type":  "row",
+                       "title":  "Fedora Host Capacity",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "h":  1,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  61
+                                   },
+                       "panels":  [
+
+                                  ]
+                   },
+                   {
+                       "id":  41,
+                       "type":  "timeseries",
+                       "title":  "CPU by Mode",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  62
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  20,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never",
+                                                                           "stacking":  {
+                                                                                            "group":  "A",
+                                                                                            "mode":  "normal"
+                                                                                        }
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * avg by (mode) (rate(node_cpu_seconds_total{job=\"node\",mode!=\"idle\"}[5m]))",
+                                           "legendFormat":  "{{mode}}",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  42,
+                       "type":  "timeseries",
+                       "title":  "Load per CPU Core",
+                       "description":  "Values above 1 mean more runnable work than available CPU capacity.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  62
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percentunit",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "node_load1{job=\"node\"} / scalar(count(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}))",
+                                           "legendFormat":  "load 1m/core",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_load5{job=\"node\"} / scalar(count(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}))",
+                                           "legendFormat":  "load 5m/core",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_load15{job=\"node\"} / scalar(count(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}))",
+                                           "legendFormat":  "load 15m/core",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  43,
+                       "type":  "timeseries",
+                       "title":  "Host Memory and Swap",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  62
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bytes",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "node_memory_MemTotal_bytes{job=\"node\"} - node_memory_MemAvailable_bytes{job=\"node\"}",
+                                           "legendFormat":  "memory used",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_memory_MemAvailable_bytes{job=\"node\"}",
+                                           "legendFormat":  "memory available",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_memory_SwapTotal_bytes{job=\"node\"} - node_memory_SwapFree_bytes{job=\"node\"}",
+                                           "legendFormat":  "swap used",
+                                           "refId":  "C",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  44,
+                       "type":  "timeseries",
+                       "title":  "Root Filesystem Usage",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  70
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bytes",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "node_filesystem_size_bytes{job=\"node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}",
+                                           "legendFormat":  "used",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_filesystem_avail_bytes{job=\"node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}",
+                                           "legendFormat":  "available",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  45,
+                       "type":  "timeseries",
+                       "title":  "Disk I/O Throughput",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  70
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "Bps",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(node_disk_read_bytes_total{job=\"node\",device!~\"loop.*|dm-.*\"}[5m]))",
+                                           "legendFormat":  "read",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "sum(rate(node_disk_written_bytes_total{job=\"node\",device!~\"loop.*|dm-.*\"}[5m]))",
+                                           "legendFormat":  "write",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  46,
+                       "type":  "timeseries",
+                       "title":  "Disk Busy Time",
+                       "description":  "Near 100% sustained busy time indicates storage saturation.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  70
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  0,
+                                                            "max":  100,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  15,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "100 * rate(node_disk_io_time_seconds_total{job=\"node\",device!~\"loop.*|dm-.*\"}[5m])",
+                                           "legendFormat":  "{{device}}",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  47,
+                       "type":  "timeseries",
+                       "title":  "System File Descriptors",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  78
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  12,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "node_filefd_allocated{job=\"node\"}",
+                                           "legendFormat":  "allocated",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       },
+                                       {
+                                           "expr":  "node_filefd_maximum{job=\"node\"}",
+                                           "legendFormat":  "maximum",
+                                           "refId":  "B",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  48,
+                       "type":  "timeseries",
+                       "title":  "Systemd Service Failures",
+                       "description":  "Tracks failed state for the Jitsi and monitoring units.",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  78
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "custom":  {
+                                                                           "drawStyle":  "bars",
+                                                                           "fillOpacity":  35,
+                                                                           "lineWidth":  1,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "max"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "node_systemd_unit_state{job=\"node\",name=~\"(jitsi-videobridge|jicofo|prosody|nginx|prometheus|grafana-server)\\\\.service\",state=\"failed\"}",
+                                           "legendFormat":  "{{name}}",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   },
+                   {
+                       "id":  49,
+                       "type":  "timeseries",
+                       "title":  "Monitoring Target Availability",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  78
+                                   },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "min":  0,
+                                                            "max":  1,
+                                                            "custom":  {
+                                                                           "drawStyle":  "line",
+                                                                           "fillOpacity":  20,
+                                                                           "lineWidth":  2,
+                                                                           "showPoints":  "never"
+                                                                       }
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "table",
+                                                      "placement":  "bottom",
+                                                      "calcs":  [
+                                                                    "lastNotNull",
+                                                                    "min"
+                                                                ]
+                                                  },
+                                       "tooltip":  {
+                                                       "mode":  "multi",
+                                                       "sort":  "desc"
+                                                   }
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "up{job=~\"jvb|jvb-jmx|node|jicofo|prometheus\"}",
+                                           "legendFormat":  "{{job}}",
+                                           "refId":  "A",
+                                           "datasource":  {
+                                                              "type":  "prometheus",
+                                                              "uid":  "prometheus"
+                                                          }
+                                       }
+                                   ],
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "prometheus"
+                                      }
+                   }
+               ],
+    "refresh":  "5s",
+    "schemaVersion":  39,
+    "style":  "dark",
+    "tags":  [
+                 "jitsi",
+                 "jvb",
+                 "capacity",
+                 "bottleneck",
+                 "fedora"
+             ],
+    "templating":  {
+                       "list":  [
+
+                                ]
+                   },
+    "time":  {
+                 "from":  "now-1h",
+                 "to":  "now"
+             },
+    "timepicker":  {
+                       "refresh_intervals":  [
+                                                 "5s",
+                                                 "10s",
+                                                 "30s",
+                                                 "1m",
+                                                 "5m"
+                                             ]
+                   },
+    "timezone":  "browser",
+    "title":  "JVB Capacity and Bottleneck Analysis",
+    "uid":  "jvb-capacity-bottlenecks",
+    "version":  1,
+    "weekStart":  ""
+}

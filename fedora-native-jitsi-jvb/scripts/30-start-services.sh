@@ -53,7 +53,7 @@ wait_journal() {
 }
 
 log "Starting Jitsi stack in required order"
-systemctl enable prosody jicofo jitsi-videobridge nginx prometheus grafana-server >/dev/null 2>&1 || true
+systemctl enable prosody jicofo jitsi-videobridge nginx prometheus node-exporter grafana-server >/dev/null 2>&1 || true
 
 start_service prosody
 wait_active prosody 30
@@ -70,9 +70,10 @@ wait_journal jitsi-videobridge 'Joined MUC: jvbbrewery@internal\.auth\.' 90 "${j
 wait_journal jicofo 'Added new videobridge: Bridge\[jid=jvbbrewery@internal\.auth\.' 90 "${jicofo_since}"
 
 start_service nginx
+start_service node-exporter
 start_service prometheus
 start_service grafana-server
 
 log "Current service state"
 systemctl --no-pager --plain status \
-  prosody jicofo jitsi-videobridge nginx prometheus grafana-server || true
+  prosody jicofo jitsi-videobridge nginx prometheus node-exporter grafana-server || true

@@ -24,8 +24,9 @@ stop_if_loaded jitsi-videobridge
 stop_if_loaded jicofo
 stop_if_loaded prosody
 stop_if_loaded prometheus
+stop_if_loaded node-exporter
 stop_if_loaded grafana-server
 
 log "Current service state"
 systemctl --no-pager --plain status \
-  prosody jicofo jitsi-videobridge nginx prometheus grafana-server || true
+  prosody jicofo jitsi-videobridge nginx prometheus node-exporter grafana-server || true
