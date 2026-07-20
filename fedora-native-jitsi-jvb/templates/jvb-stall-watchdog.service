@@ -1,0 +1,20 @@
+[Unit]
+Description=Sample JVB stall indicators and capture bounded incident evidence
+After=prometheus.service jitsi-videobridge.service jitsi-videobridge2.service
+Wants=prometheus.service
+
+[Service]
+Type=oneshot
+Environment=JVB_WATCHDOG_ENV_FILE=/etc/jitsi/videobridge/stall-watchdog.env
+ExecStart=/usr/local/sbin/jvb-stall-watchdog
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/jitsi-videobridge/diagnostics /var/lib/node_exporter/textfile_collector /tmp
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target
