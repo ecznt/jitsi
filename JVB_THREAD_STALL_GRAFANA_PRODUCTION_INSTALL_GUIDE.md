@@ -15,6 +15,26 @@ Bu guide:
 Butun artefaktlari production sunucuya operatorun kendisinin aktardigi
 varsayilir. Asagidaki komutlar sunucuda tek tek copy/paste edilmek icindir.
 
+### Mevcut production dashboard'undan devam etme
+
+`JVB Thread, Lock and Stall Forensics` dashboard'u ayni UID ile kurulmus ve
+paneller veri gosteriyorsa dashboard'u tekrar import etmeyin veya ezmeyin.
+Bu durumda guide'i su sirayla uygulayin:
+
+1. Bolum 1-3 ile runtime dosyalari, port, arac ve endpoint preflight'ini
+   tamamlayin. Dashboard JSON zaten kuruluysa yalniz onun upload kontrollerini
+   atlayin; alert ve watchdog dosyalarinin kontrollerini atlamayin.
+2. Bolum 4-6 ile provider'i okuyun, JVB/JFR'yi dogrulayin ve mevcut
+   dashboard'larin hash backup'ini alin.
+3. Dashboard zaten var oldugu icin bolum 7, 9 ve 10'u uygulamayin.
+4. Bolum 8'de Prometheus job/metric preflight'ini mutlaka tamamlayin.
+5. Bolum 11'de mevcut dashboard hash'lerini ve JVB PID'sini dogrulayin.
+6. Bolum 13'ten itibaren alert rules, watchdog gozlem modu, baseline ve
+   otomatik capture asamalarina devam edin.
+
+Bu devam rotasinda `BACKUP` degiskeni bolum 6'da olusturuldugu icin bolum
+13'teki Prometheus backup ve rollback komutlari calismaya devam eder.
+
 ## 1. Kullanilacak dosya
 
 Local repository'deki kaynak:
@@ -87,11 +107,53 @@ Bu guide'in degistirecegi tek Grafana dosyasi yeni ve benzersiz hedef dosyadir:
 /var/lib/grafana/dashboards/jvb-thread-stall-forensics.json
 ```
 
-## 3. Degiskenleri tanimlama
+## 3. Production port envanteri ve degiskenleri tanimlama
+
+Bu production makinesinde servis PID/socket sahipligi ve HTTP endpoint'leri
+elle dogrulanmistir:
+
+| Bilesen | Bind/port | Dogrulama |
+| --- | --- | --- |
+| JVB media | `<HOST_BIND_IP>:10000/udp` | `jitsi-videobridge2` PID socket sahibi |
+| JVB public HTTP/WebSocket | `*:9090/tcp` | `jitsi-videobridge2` PID socket sahibi |
+| JVB private HTTP/API | `127.0.0.1:8080/tcp` | `/about/health` HTTP 200 |
+| JMX Exporter | `127.0.0.1:9404/tcp` | `jmx_exporter_build_info`, JVM thread metricleri |
+| Prometheus | `127.0.0.1:9093/tcp` | `/api/v1/status/buildinfo` basarili |
+| Node Exporter | `127.0.0.1:9100/tcp` | `node_exporter_build_info` mevcut |
+| Grafana | `<HOST_BIND_IP>:3000/tcp` | `/api/health`, database `ok` |
+
+Bu tabloda `9090` Prometheus degil, JVB public HTTP/WebSocket portudur.
+Prometheus bu ortamda standart disi `9093` portundadir. Watchdog ve butun
+Prometheus sorgulari `9093` kullanmalidir.
+
+Kurulum baska bir makinede veya port degisikliginden sonra yapilacaksa tabloyu
+varsaymayin. Once ilgili servisin `MainPID` degerini alip socket sahibini
+yeniden kontrol edin:
+
+```bash
+systemctl show jitsi-videobridge2.service -p MainPID --value
+systemctl show prometheus.service -p MainPID --value
+systemctl show prometheus-node-exporter.service -p MainPID --value
+systemctl show grafana-server.service -p MainPID --value
+sudo ss -H -lntup
+```
+
+Repository public oldugu icin production host IP'si bu guide'a yazilmamistir.
+`HOST_BIND_IP` degerini `ss` ciktisinda dogruladiginiz JVB/Grafana bind IP'si
+ile degistirin. Diger URL ve portlar bu makinede dogrulanan production
+degerleridir:
 
 Sunucuda:
 
 ```bash
+export HOST_BIND_IP='REPLACE_WITH_VERIFIED_HOST_IP'
+export GRAFANA_URL="http://${HOST_BIND_IP}:3000"
+export PROMETHEUS_URL=http://127.0.0.1:9093
+export JVB_PRIVATE_URL=http://127.0.0.1:8080
+export JMX_EXPORTER_URL=http://127.0.0.1:9404
+export NODE_EXPORTER_URL=http://127.0.0.1:9100
+export JVB_PUBLIC_PORT=9090
+export JVB_MEDIA_PORT=10000
 export UPLOAD_JSON=/tmp/grafana-dashboard-jvb-thread-forensics.json
 export DASH_DIR=/var/lib/grafana/dashboards
 export TARGET_JSON=/var/lib/grafana/dashboards/jvb-thread-stall-forensics.json
@@ -109,6 +171,37 @@ export WATCHDOG_ENV=/etc/jitsi/videobridge/stall-watchdog.env
 export DIAG_ROOT=/var/lib/jitsi-videobridge/diagnostics
 export TEXTFILE_DIR=/var/lib/node_exporter/textfile_collector
 ```
+
+Zorunlu komutlarin tamamini kurulumdan once kontrol edin:
+
+```bash
+MISSING_COMMAND=0
+for CMD in curl jq jcmd jfr promtool systemctl systemd-analyze sha256sum ss timeout; do
+  command -v "${CMD}" >/dev/null || {
+    printf 'STOP - required command is missing: %s\n' "${CMD}" >&2
+    MISSING_COMMAND=1
+  }
+done
+test "${MISSING_COMMAND}" -eq 0
+```
+
+Herhangi bir komut eksikse devam etmeyin. Ozellikle `jcmd` ve `jfr`, JVB'nin
+calistigi Java 21 runtime ile ayni JDK kurulumundan gelmelidir.
+
+Dogrulanan endpoint'leri tekrar kontrol edin:
+
+```bash
+curl -fsS "${GRAFANA_URL}/api/health" | jq
+curl -fsS "${PROMETHEUS_URL}/-/ready"
+curl -fsS -o /dev/null -w 'JVB health HTTP %{http_code}\n' "${JVB_PRIVATE_URL}/about/health"
+curl -fsS "${JMX_EXPORTER_URL}/metrics" | grep -E '^(jmx_exporter_build_info|jvm_threads_current)' | sed -n '1,5p'
+curl -fsS "${NODE_EXPORTER_URL}/metrics" | grep '^node_exporter_build_info' | sed -n '1p'
+```
+
+Beklenen sonuclar sirasiyla Grafana database `ok`, Prometheus ready, JVB HTTP
+`200`, JMX/JVM thread metricleri ve Node Exporter build metricidir. Bir kontrol
+basarisizsa URL/portu tahmin ederek degistirmeyin; servis PID/socket sahipligini
+yeniden dogrulayin.
 
 Upload edilen dosyanin varligini kontrol edin:
 
@@ -131,6 +224,11 @@ jvb-thread-stall-forensics    JVB Thread, Lock and Stall Forensics    1
 ```
 
 Farkli UID veya title gorurseniz devam etmeyin.
+
+Mevcut production dashboard'undan devam rotasindaysaniz ve JSON'u yeniden
+kurmayacaksaniz `UPLOAD_JSON` icin olan ilk uc kontrolu atlayabilirsiniz.
+`UPLOAD_ALERTS`, capture/watchdog scriptleri, env ve iki systemd unit icin
+`test -s` kontrollerinin tamami yine zorunludur.
 
 ## 4. Grafana provider klasorunu dogrulama
 
@@ -156,9 +254,17 @@ systemctl is-active grafana-server prometheus "${JVB_SERVICE}"
 JVB_PID_BEFORE=$(systemctl show -p MainPID --value "${JVB_SERVICE}")
 test "${JVB_PID_BEFORE}" -gt 0
 printf 'JVB PID before: %s\n' "${JVB_PID_BEFORE}"
+
+sudo jcmd "${JVB_PID_BEFORE}" VM.version
+sudo jcmd "${JVB_PID_BEFORE}" JFR.check
 ```
 
 Grafana, Prometheus ve JVB `active` donmelidir.
+`VM.version` Java 21 gostermeli ve `JFR.check` en az bir `running` recording
+gostermelidir. Running recording yoksa watchdog kurulabilir fakat incident
+paketinde geriye donuk `incident.jfr` olusmaz. Otomatik capture'i acmadan once
+mevcut rolling JFR mekanizmasini duzeltin; ikinci bir recording'i korlemesine
+baslatmayin.
 
 ## 6. Mevcut dashboard'lari yedekleme ve hash envanteri
 
@@ -216,15 +322,19 @@ Komut durursa mevcut dosyayi ezmeyin.
 ## 8. Prometheus target ve metric preflight
 
 ```bash
-curl -fsS http://127.0.0.1:3000/api/health | jq
-curl -fsS http://127.0.0.1:9090/-/ready
+curl -fsS "${GRAFANA_URL}/api/health" | jq
+curl -fsS "${PROMETHEUS_URL}/-/ready"
 
-curl -fsG http://127.0.0.1:9090/api/v1/query \
+curl -fsG "${PROMETHEUS_URL}/api/v1/query" \
   --data-urlencode 'query=up{job=~"jvb|jvb-jmx|node"}' \
   | jq -r '.data.result[] | [.metric.job,.metric.instance,.value[1]] | @tsv'
 ```
 
 `jvb`, `jvb-jmx` ve `node` target'larinin degeri `1` olmalidir.
+Bu job adlari dashboard, alert rules ve watchdog sorgularinda kullanilir.
+Herhangi biri yoksa veya farkli job adi kullaniliyorsa burada durun; dosyalari
+kurmadan once uc artefaktin sorgulari production job adlariyla birlikte
+uyarlanmalidir.
 
 Dashboard'un temel metriklerini kontrol edin:
 
@@ -239,7 +349,7 @@ for METRIC in \
   node_cpu_seconds_total \
   node_procs_running
 do
-  COUNT=$(curl -fsG http://127.0.0.1:9090/api/v1/query \
+  COUNT=$(curl -fsG "${PROMETHEUS_URL}/api/v1/query" \
     --data-urlencode "query=count(${METRIC})" \
     | jq -r '.data.result[0].value[1] // "0"')
   printf '%-36s %s\n' "${METRIC}" "${COUNT}"
@@ -268,7 +378,7 @@ export PROM_UID=prometheus
 Farkliysa gercek UID'yi yazin:
 
 ```bash
-export PROM_UID=<MEVCUT_PROMETHEUS_UID>
+export PROM_UID='REPLACE_WITH_EXISTING_PROMETHEUS_UID'
 ```
 
 Yalniz yeni dashboard icin kurulacak aday dosyayi olusturun:
@@ -391,11 +501,21 @@ Mevcut bir glob `ALERT_TARGET` dosyasini kapsamiyorsa:
 sudoedit "${PROM_CONFIG}"
 ```
 
-`rule_files` altina yalniz su satiri ekleyin:
+Mevcut `rule_files:` blogu varsa altina yalniz su satiri ekleyin:
 
 ```yaml
   - /etc/prometheus/jvb-thread-alerts.yml
 ```
+
+`rule_files:` blogu hic yoksa Prometheus konfigurasyonuna top-level olarak su
+blogu ekleyin:
+
+```yaml
+rule_files:
+  - /etc/prometheus/jvb-thread-alerts.yml
+```
+
+Ayni path'i iki kez eklemeyin ve girintiyi mevcut YAML yapisina gore koruyun.
 
 `PROM_CONFIG` veya `ALERT_TARGET` icin farkli path kullandiysaniz YAML
 satirini gercek hedef path ile yazin.
@@ -406,8 +526,8 @@ Degisikligi ve syntax'i dogrulayin:
 sudo diff -u "${BACKUP}/prometheus.yml.before" "${PROM_CONFIG}" || true
 sudo promtool check config "${PROM_CONFIG}"
 sudo systemctl reload prometheus
-curl -fsS http://127.0.0.1:9090/-/ready
-curl -fsS http://127.0.0.1:9090/api/v1/rules | jq -r '.data.groups[] | select(.name == "jvb-thread-and-stall") | .name'
+curl -fsS "${PROMETHEUS_URL}/-/ready"
+curl -fsS "${PROMETHEUS_URL}/api/v1/rules" | jq -r '.data.groups[] | select(.name == "jvb-thread-and-stall") | .name'
 ```
 
 Beklenen rule group:
@@ -450,12 +570,23 @@ bash -n "${UPLOAD_WATCHDOG}"
 Node Exporter textfile collector path'ini dogrulayin:
 
 ```bash
-systemctl cat prometheus-node-exporter | grep -- '--collector.textfile.directory'
+NODE_EXPORTER_PID=$(systemctl show prometheus-node-exporter.service -p MainPID --value)
+test "${NODE_EXPORTER_PID}" -gt 0
+
+TEXTFILE_ARG=$(sudo cat "/proc/${NODE_EXPORTER_PID}/cmdline" \
+  | tr '\0' '\n' \
+  | sed -n 's/^--collector.textfile.directory=//p')
+
+test -n "${TEXTFILE_ARG}"
+export TEXTFILE_DIR="${TEXTFILE_ARG}"
+printf 'Node Exporter textfile directory: %s\n' "${TEXTFILE_DIR}"
 ```
 
-Ciktidaki path farkliysa `TEXTFILE_DIR` degerini degistirin. Collector
-parametresi yoksa burada durun; Node Exporter textfile collector'i ayri ve
-kontrollu bir servis change'i ile etkinlestirilmelidir.
+Bu kontrol systemd dosyasini degil, calisan Node Exporter process'inin gercek
+argumanini okur. `test -n` basarisizsa burada durun; Node Exporter textfile
+collector'i ayri ve kontrollu bir servis change'i ile etkinlestirilmelidir.
+`TEXTFILE_DIR` degeri asagidaki env ve systemd `ReadWritePaths` ayarlarinda da
+ayni olmali, varsayilan path korlemesine kullanilmamalidir.
 
 Hedeflerde daha once ayni mekanizma bulunmadigini kontrol edin:
 
@@ -511,6 +642,7 @@ JVB_WATCHDOG_THREAD_LIMIT=0
 JVB_WATCHDOG_STATE_DIR=/var/lib/jitsi-videobridge/diagnostics/watchdog
 JVB_NODE_EXPORTER_TEXTFILE_DIR=/var/lib/node_exporter/textfile_collector
 JVB_INCIDENT_ROOT=/var/lib/jitsi-videobridge/diagnostics/incidents
+JVB_PROMETHEUS_URL=http://127.0.0.1:9093
 JVB_SERVICE=
 ```
 
@@ -532,8 +664,8 @@ Ilk iki ornekten sonra kontrol edin:
 ```bash
 sudo journalctl -u jvb-stall-watchdog.service -n 50 --no-pager
 sudo tail -n 20 "${DIAG_ROOT}/watchdog/samples.jsonl"
-curl -fsS http://127.0.0.1:9100/metrics | grep '^jvb_watchdog_'
-curl -fsG http://127.0.0.1:9090/api/v1/query --data-urlencode 'query=jvb_watchdog_last_run_timestamp_seconds' | jq
+curl -fsS "${NODE_EXPORTER_URL}/metrics" | grep '^jvb_watchdog_'
+curl -fsG "${PROMETHEUS_URL}/api/v1/query" --data-urlencode 'query=jvb_watchdog_last_run_timestamp_seconds' | jq
 ```
 
 Bu modda Grafana'daki watchdog sample ve breach panelleri veri gostermeye
