@@ -1,0 +1,1089 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Live JVM Threads",
+      "description": "Platform threads currently alive. Growth alone is not a deadlock; correlate it with state and creation rate.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_current{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Monitor BLOCKED",
+      "description": "Threads waiting to enter a Java synchronized monitor. WAITING/TIMED_WAITING usually means parked or sleeping and is not itself a lock failure.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 4
+              },
+              {
+                "color": "red",
+                "value": 8
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_state{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\",state=~\"BLOCKED|blocked\"}) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Deadlocked Threads",
+      "description": "A non-zero ThreadMXBean deadlock count is a critical JVM-level finding.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_deadlocked{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Peak JVM Threads",
+      "description": "Highest live thread count observed since the current JVB process started. Compare it with the live count and creation rate.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_peak{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "JVB Health",
+      "description": "Native JVB health metric. A zero value means the bridge is unhealthy; No data means this JVB build does not export the metric.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "UNHEALTHY"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "HEALTHY"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "max(jitsi_jvb_healthy{job=\"jvb\",jvb_node=~\"$jvb_node\"})",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "JVB Process CPU / Host",
+      "description": "Normalized against all logical CPUs visible to Node Exporter. 87.5 percent is about 42 cores on a 48-CPU host.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 87.5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(process_cpu_seconds_total{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"}[1m])) / count(node_cpu_seconds_total{job=\"node\",jvb_node=~\"$jvb_node\",mode=\"idle\"})",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "JVM Thread Population",
+      "description": "Peak and started-rate reveal churn; live vs daemon reveals long-lived thread growth.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_current{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "live",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(jvm_threads_daemon{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "daemon",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(jvm_threads_peak{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "peak",
+          "refId": "C"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "JVM Thread States",
+      "description": "BLOCKED means monitor contention. WAITING and TIMED_WAITING are often normal for executors, selectors and timers.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (state) (jvm_threads_state{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Thread Creation Rate",
+      "description": "JVB's cached IO pool can create platform threads when all existing IO workers are busy. Sustained creation suggests endpoint churn or blocked IO tasks.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(jvm_threads_started_total{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "new threads/s",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "CPU, Stress and Scheduler Pressure",
+      "description": "High CPU/run queue with zero BLOCKED threads is scheduling saturation, not a Java lock.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(process_cpu_seconds_total{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"}[1m])) / count(node_cpu_seconds_total{job=\"node\",jvb_node=~\"$jvb_node\",mode=\"idle\"})",
+          "legendFormat": "JVB CPU % host",
+          "refId": "A"
+        },
+        {
+          "expr": "100 * max(jitsi_jvb_stress_level{job=\"jvb\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "JVB stress %",
+          "refId": "B"
+        },
+        {
+          "expr": "100 * sum(node_procs_running{job=\"node\",jvb_node=~\"$jvb_node\"}) / count(node_cpu_seconds_total{job=\"node\",jvb_node=~\"$jvb_node\",mode=\"idle\"})",
+          "legendFormat": "run queue / CPU %",
+          "refId": "C"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "RTP / RTCP Transit p99",
+      "description": "A spike concurrent with CPU, queue or lock indicators shows user-visible media-path delay.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(jitsi_jvb_rtp_transit_time_bucket{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m])))",
+          "legendFormat": "RTP p99",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(jitsi_jvb_rtcp_transit_time_bucket{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m])))",
+          "legendFormat": "RTCP p99",
+          "refId": "B"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Linux Scheduler Evidence",
+      "description": "Context switches and runnable/blocked processes help distinguish lock contention, CPU oversubscription and IO stalls.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_context_switches_total{job=\"node\",jvb_node=~\"$jvb_node\"}[1m])",
+          "legendFormat": "context switches/s",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(node_procs_running{job=\"node\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "runnable processes",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(node_procs_blocked{job=\"node\",jvb_node=~\"$jvb_node\"})",
+          "legendFormat": "IO-blocked processes",
+          "refId": "C"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "GC and Heap Pressure",
+      "description": "Stop-the-world or allocation pressure can mimic an application stall without any Java lock.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(jvm_memory_used_bytes{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\",area=\"heap\"}) / clamp_min(sum(jvm_memory_max_bytes{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\",area=\"heap\"}), 1)",
+          "legendFormat": "heap used %",
+          "refId": "A"
+        },
+        {
+          "expr": "1000 * sum(rate(jvm_gc_collection_seconds_sum{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"}[5m])) / clamp_min(sum(rate(jvm_gc_collection_seconds_count{job=\"jvb-jmx\",jvb_node=~\"$jvb_node\"}[5m])), 0.000001)",
+          "legendFormat": "average GC ms",
+          "refId": "B"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "UDP and Linux Softnet Drops",
+      "description": "Non-zero values mean packets are lost before normal JVB processing; this commonly looks like a frozen participant.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(node_netstat_Udp_RcvbufErrors{job=\"node\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "UDP receive-buffer errors/s",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(node_softnet_dropped_total{job=\"node\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "softnet drops/s",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(node_softnet_times_squeezed_total{job=\"node\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "softnet time-squeezed/s",
+          "refId": "C"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Endpoint Churn and Transport Failures",
+      "description": "A problematic participant can repeatedly connect/disconnect, fail ICE/DTLS or trigger new IO reader/handshake work.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(jitsi_jvb_endpoints_disconnected_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "disconnects/s",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_endpoints_reconnected_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "reconnects/s",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_ice_failed_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "ICE failures/s",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_endpoints_dtls_failed_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "DTLS failures/s",
+          "refId": "D"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Direct Queue Drops (Newer JVB Builds)",
+      "description": "JVB 2.3.92 does not export all queue-drop counters. No data is expected there; use transit delay, UDP drops and incident dumps as proxies until an upgrade.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(jitsi_jvb_queue_dropped_packets_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "media queues",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_colibri_queue_dropped_packets_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "Colibri queue",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_endpoint_receive_message_queue_dropped_packets_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "endpoint message queue",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate(jitsi_jvb_srtp_send_queue_dropped_packets_total{job=\"jvb\",jvb_node=~\"$jvb_node\"}[5m]))",
+          "legendFormat": "SRTP send queue",
+          "refId": "D"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Watchdog Consecutive Breaches",
+      "description": "Number of consecutive 15-second samples that crossed at least one incident threshold.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "max(jvb_watchdog_consecutive_breaches{job=\"node\",jvb_node=~\"$jvb_node\"}) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Last Incident Capture",
+      "description": "UTC timestamp of the last automatic evidence bundle.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "max(jvb_watchdog_last_trigger_timestamp_seconds{job=\"node\",jvb_node=~\"$jvb_node\"}) * 1000",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Watchdog Last Sample",
+      "description": "UTC timestamp of the latest successful watchdog sample. A stale value means the timer, Prometheus query or textfile export is unhealthy.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "max(jvb_watchdog_last_run_timestamp_seconds{job=\"node\",jvb_node=~\"$jvb_node\"}) * 1000",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Active JVB Alerts",
+      "description": "Number of currently firing Prometheus alerts whose names start with JVB.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(ALERTS{jvb_node=~\"$jvb_node\",alertstate=\"firing\",alertname=~\"JVB.*\"}) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 17,
+      "type": "text",
+      "title": "Incident Triage Order",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "1. **Deadlocked > 0 / BLOCKED rising:** open `thread-analysis.txt` and the three thread dumps; match repeated lock owners.\n2. **BLOCKED = 0 but CPU/run queue/transit p99 rise:** CPU scheduling or hot packet queue starvation is more likely than a monitor deadlock.\n3. **UDP/softnet drops rise:** investigate NIC IRQ/RSS, kernel backlog and socket buffers first.\n4. **GC rises:** inspect the incident JFR, `jfr-summary.txt` and GC/safepoint logs.\n5. Correlate the bundle UTC timestamp with conference/endpoint logs.\n\nEvidence bundles are written under the configured incident root. Thread dumps and JFR data may contain conference/endpoint identifiers; restrict access and redact before sharing."
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": [
+    "jitsi",
+    "jvb",
+    "threads",
+    "forensics",
+    "multi-node"
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "JVB Multi-Node Thread, Lock and Stall Forensics",
+  "uid": "jvb-thread-stall-multinode",
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(up{job=\"jvb-jmx\"}, jvb_node)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "JVB node",
+        "multi": false,
+        "name": "jvb_node",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=\"jvb-jmx\"}, jvb_node)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  }
+}
